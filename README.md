@@ -25,7 +25,7 @@ npm run lint
 #### Technology Stack
 
 - 界面框架: [Electron-vue](https://legacy.gitbook.com/book/simulatedgreg/electron-vue/details)
-- js 2D图形库: [Konvas](konvajs.github.io)
+- js 2D图形库: [Konvas](https://konvajs.github.io)
 
 ---
 
