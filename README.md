@@ -1,6 +1,6 @@
 # tf-demo
 
-> An electron-vue project
+> An visual demo for Tensorflow
 
 #### Build Setup
 
@@ -20,8 +20,12 @@ npm test
 
 # lint all JS/Vue component files in `src/`
 npm run lint
-
 ```
+
+#### Technology Stack
+
+- 界面框架: [Electron-vue](https://legacy.gitbook.com/book/simulatedgreg/electron-vue/details)
+- js 2D图形库: [Konvas](konvajs.github.io)
 
 ---
 
