@@ -13,35 +13,60 @@
 import Node from './Shapes/Node'
 import Flow from './Shapes/Flow'
 import Module from '../assets/modules/md1'
+import Devices from '../assets/devices/devs'
 
 export default {
   name: 'Canvas',
   components: { Node, Flow },
   data () {
     return {
+      module: null,
+      devices: null,
       configKonva: {
         width: 1000,
         height: 800
       },
       configNodes: [],
-      configFlows: []
+      configFlows: [],
+      devicesSetting: []
     }
   },
   methods: {
     startAnimation: function () {
+    },
+    executeTask: function () {
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+          const node = this.module.layers[i].nodes[j]
+          this.devicesSetting[node.group][i].push(node.nid)
+        }
+      }
+    },
+    executeTaskYsnc: function () {
+    },
+    initDevicesSetting: function () {
+      for (let i = 0; i < this.devices.devNum; i++) {
+        this.devicesSetting.push([])
+        for (let j = 0; j < this.module.layersNum; j++) {
+          this.devicesSetting[i].push([])
+        }
+      }
     }
   },
   created: function () {
     // create nodes
-    const module = Module.module
+    this.module = Module.module
+    this.devices = Devices.deviceConfig.dev1
+    this.initDevicesSetting()
+
     const layerWidth = 1000
     const layerHeight = 250
-    const moduleHeight = layerHeight * module.layersNum
+    const moduleHeight = layerHeight * this.module.layersNum
     const nodeWidth = 250
     const moduleY = 800 - (800 - moduleHeight) / 2 - nodeWidth / 2
-    for (let i in module.layers) {
+    for (let i in this.module.layers) {
       let layerY = moduleY - i * layerHeight
-      let layer = module.layers[i]
+      let layer = this.module.layers[i]
       let nodesWidth = nodeWidth * layer.nodesNum
       let layerLeft = (layerWidth - nodesWidth) / 2 + nodeWidth / 2
       for (let j in layer.nodes) {
@@ -60,11 +85,11 @@ export default {
       }
     }
     // create flows
-    for (let i = 0; i < module.layersNum; i++) {
-      const layer = module.layers[i]
+    for (let i = 0; i < this.module.layersNum; i++) {
+      const layer = this.module.layers[i]
       // next layer is not the output layer
-      if (layer.lid < module.layersNum - 1) {
-        const nextLayer = module.layers[i + 1]
+      if (layer.lid < this.module.layersNum - 1) {
+        const nextLayer = this.module.layers[i + 1]
         for (let node of layer.nodes) {
           // this node has no connections
           if (node.connections.length === 0) continue
@@ -81,6 +106,7 @@ export default {
   },
   mounted: function () {
     this.$refs.nodesLayer.getStage().moveToTop()
+    this.executeTask()
   }
 }
 </script>
@@ -88,4 +114,3 @@ export default {
 <style scoped>
 
 </style>
-
