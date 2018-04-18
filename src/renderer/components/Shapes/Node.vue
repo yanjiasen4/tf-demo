@@ -42,7 +42,7 @@ export default {
       })
       setTimeout(() => {
         progressTween.play()
-      }, delay)
+      }, delay * 1000)
     }
   }
 }

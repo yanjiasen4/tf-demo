@@ -1,12 +1,15 @@
 <template>
-  <v-stage :config="configKonva" ref="stage">
-    <v-layer ref="nodesLayer">
-      <node v-for="(node, index) of configNodes" :nodeAttr='node' ref="node" :key="index"></node>
-    </v-layer>
-    <v-layer ref="flowsLayer">
-      <flow v-for="(flow, index) of configFlows" :flowAttr='flow' ref="flow" :key="index"></flow>
-    </v-layer>
-  </v-stage>
+  <div>
+    <v-stage :config="configKonva" ref="stage">
+      <v-layer ref="nodesLayer">
+        <node v-for="(node, index) of configNodes" :nodeAttr='node' ref="nodes" :key="index"></node>
+      </v-layer>
+      <v-layer ref="flowsLayer">
+        <flow v-for="(flow, index) of configFlows" :flowAttr='flow' ref="flows" :key="index"></flow>
+      </v-layer>
+    </v-stage>
+    <button @click="executeTask">开始任务</button>
+  </div>
 </template>
 
 <script>
@@ -28,29 +31,80 @@ export default {
       },
       configNodes: [],
       configFlows: [],
+      nodesNumArray: [],
       devicesSetting: []
     }
   },
   methods: {
     startAnimation: function () {
-    },
-    executeTask: function () {
       for (let i = 0; i < this.module.layersNum; i++) {
-        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+        for (let j = 0; j < this.module.layers[i].nodes.length; j++) {
           const node = this.module.layers[i].nodes[j]
-          this.devicesSetting[node.group][i].push(node.nid)
+          let delay = 0
+          if (i > 0 && node.connectBy.length > 0) {
+            const prevLayer = this.module.layers[i - 1]
+            delay = this.getMaxDuration(prevLayer.nodes, node.connectBy)
+          }
+          console.log(`lid: ${i}, nid: ${j} start task at ${delay}, duration: ${node.duration}`)
+          this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
         }
       }
+    },
+    executeTask: function () {
+      this.createDevicesSetting()
+
+      for (let i = 0; i < this.devicesSetting.length; i++) { // layer
+        for (let j = 0; j < this.devicesSetting[i].length; j++) { // device
+          let GPUCost = 0
+          let CPUCost = 0
+          let IOCost = 0
+          const GPURates = this.devices.devs[j].GPURate
+          const CPURates = this.devices.devs[j].CPURate
+          const IORates = this.devices.devs[j].IORate
+          const layerDeviceNodes = this.devicesSetting[i][j]
+          for (let k = 0; k < layerDeviceNodes.length; k++) {
+            GPUCost += layerDeviceNodes[k].cost[0]
+            CPUCost += layerDeviceNodes[k].cost[1]
+            IOCost += layerDeviceNodes[k].cost[2]
+          }
+          let duration = Math.max(GPUCost / GPURates, CPUCost / CPURates, IOCost / IORates)
+          for (let k = 0; k < layerDeviceNodes.length; k++) {
+            layerDeviceNodes[k].duration = duration
+          }
+        }
+      }
+
+      this.startAnimation()
     },
     executeTaskYsnc: function () {
     },
     initDevicesSetting: function () {
-      for (let i = 0; i < this.devices.devNum; i++) {
+      for (let i = 0; i < this.module.layersNum; i++) {
         this.devicesSetting.push([])
-        for (let j = 0; j < this.module.layersNum; j++) {
+        for (let j = 0; j < this.devices.devNum; j++) {
           this.devicesSetting[i].push([])
         }
       }
+    },
+    createDevicesSetting: function () {
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+          const node = this.module.layers[i].nodes[j]
+          this.devicesSetting[i][node.group].push(node)
+        }
+      }
+    },
+    getNodeIndex: function (lid, nid) {
+      return lid === 0 ? nid : this.nodesNumArray[lid - 1] + nid
+    },
+    getMaxDuration: function (nodes, indices) {
+      let maxDuration = 0
+      for (let i of indices) {
+        if (nodes[i].duration > maxDuration) {
+          maxDuration = nodes[i].duration
+        }
+      }
+      return maxDuration
     }
   },
   created: function () {
@@ -65,6 +119,8 @@ export default {
     const nodeWidth = 250
     const moduleY = 800 - (800 - moduleHeight) / 2 - nodeWidth / 2
     for (let i in this.module.layers) {
+      // record nodesNum of each layer
+      this.nodesNumArray.push(this.module.layers[i].nodesNum)
       let layerY = moduleY - i * layerHeight
       let layer = this.module.layers[i]
       let nodesWidth = nodeWidth * layer.nodesNum
@@ -106,7 +162,6 @@ export default {
   },
   mounted: function () {
     this.$refs.nodesLayer.getStage().moveToTop()
-    this.executeTask()
   }
 }
 </script>

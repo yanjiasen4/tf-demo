@@ -8,21 +8,25 @@ export default {
         'nid': 0,
         'group': 0,
         'connections': [0, 1, 2],
+        'connectBy': [],
         'cost': [3, 1, 3]
       }, {
         'nid': 1,
         'group': 1,
         'connections': [0, 1, 2],
+        'connectBy': [],
         'cost': [3, 1, 3]
       }, {
         'nid': 2,
         'group': 0,
         'connections': [0, 1, 2],
+        'connectBy': [],
         'cost': [4, 2, 1]
       }, {
         'nid': 3,
         'group': 2,
         'connections': [0, 1, 2],
+        'connectBy': [],
         'cost': [1, 3, 2]
       }]
     }, {
@@ -32,16 +36,19 @@ export default {
         'nid': 0,
         'group': 0,
         'connections': [0],
+        'connectBy': [0, 1, 2, 3],
         'cost': [2, 2, 2]
       }, {
         'nid': 1,
         'group': 2,
         'connections': [0],
+        'connectBy': [0, 1, 2, 3],
         'cost': [2, 2, 2]
       }, {
         'nid': 2,
         'group': 2,
         'connections': [0],
+        'connectBy': [0, 1, 2, 3],
         'cost': [2, 2, 2]
       }]
     }, {
@@ -51,6 +58,7 @@ export default {
         'nid': 0,
         'group': 1,
         'connections': [],
+        'connectBy': [0, 1, 2],
         'cost': [1, 3, 6]
       }]
     }]
