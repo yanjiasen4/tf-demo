@@ -20,6 +20,7 @@ export default {
         y: this.nodeAttr.y,
         radius: this.nodeAttr.radius,
         // fill: Colors.colors[this.nodeAttr.groupId],
+        fill: 'white',
         stroke: Colors.colors[this.nodeAttr.groupId],
         strokeWidth: 3
       },
@@ -42,17 +43,6 @@ export default {
       setTimeout(() => {
         progressTween.play()
       }, delay)
-      // const progressTween = new Tween({
-      //   node: this.$refs.node.getStage(),
-      //   duration: 1,
-      //   height: 0
-      // })
-      // console.log(this.$refs.node.getStage())
-      // const progressAnim = new Animation(frame => {
-      //   this.$refs.node.getStage().setX(100 * Math.sin(frame.time * 2 * Math.PI / 5000) + 100)
-      // }, this.$refs.node.getStage())
-
-      // progressAnim.start()
     }
   }
 }
