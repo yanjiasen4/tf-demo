@@ -78,14 +78,13 @@ export default {
         node: this.$refs.recR.getStage(),
         x: this.finalx,
         y: this.finaly,
-        duration: 5
+        duration: duration
       })
       this.tween = progressTween2
-      this.tween.play()
       // console.log(`${this.lid}, ${this.nid}, ${this.tween}`)
-      // setTimeout(() => {
-      //   this.tween.play()
-      // }, 1000)
+      setTimeout(() => {
+        this.tween.play()
+      }, delay)
     },
     pause: function () {
       if (this.tween !== null) {

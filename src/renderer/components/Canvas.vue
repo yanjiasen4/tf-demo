@@ -38,13 +38,14 @@ export default {
   },
   methods: {
     startAnimation: function () {
+      const dataFlowDuration = 1
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodes.length; j++) {
           const node = this.module.layers[i].nodes[j]
           let delay = 0
           if (i > 0 && node.connectBy.length > 0) {
             const prevLayer = this.module.layers[i - 1]
-            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy)
+            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy) + i * dataFlowDuration
             console.log(`animation: ${delay}`)
           }
           console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
