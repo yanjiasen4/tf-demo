@@ -44,11 +44,11 @@ export default {
           let delay = 0
           if (i > 0 && node.connectBy.length > 0) {
             const prevLayer = this.module.layers[i - 1]
-            delay = this.getMaxDuration(prevLayer.nodes, node.connectBy)
+            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy)
+            console.log(`animation: ${delay}`)
           }
           console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
-          node.delay = delay
         }
       }
     },
@@ -71,8 +71,17 @@ export default {
           }
           let duration = Math.max(GPUCost / GPURates, CPUCost / CPURates, IOCost / IORates)
           for (let k = 0; k < layerDeviceNodes.length; k++) {
-            layerDeviceNodes[k].duration = duration
-            layerDeviceNodes[k].delay = 0
+            let node = layerDeviceNodes[k]
+            node.duration = duration
+            console.log(node.delay)
+            node.delay = 1
+            if (i > 0) {
+              const prevLayer = this.module.layers[i - 1]
+              node.delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy)
+            } else {
+              node.delay = 0
+            }
+            console.log(node.delay)
           }
         }
       }
@@ -123,6 +132,25 @@ export default {
         }
       }
       return maxDuration
+    },
+    getMaxDelay: function (nodes, indices) {
+      let maxDelay = 0
+      for (let i of indices) {
+        if (nodes[i].delay > maxDelay) {
+          maxDelay = nodes[i].delay
+        }
+      }
+      return maxDelay
+    },
+    getMaxTime2Wait: function (nodes, indices) {
+      let maxT2w = 0
+      for (let i of indices) {
+        let nodeT2w = nodes[i].delay + nodes[i].duration
+        if (nodeT2w > maxT2w) {
+          maxT2w = nodeT2w
+        }
+      }
+      return maxT2w
     }
   },
   created: function () {
@@ -181,7 +209,6 @@ export default {
     }
   },
   mounted: function () {
-    console.log(this.$refs.nodes)
     this.$refs.nodesLayer.getStage().moveToTop()
   }
 }
