@@ -49,9 +49,14 @@ export default {
         this.tween.play()
       }, delay * 1000)
     },
+    pause: function () {
+      if (this.tween !== null) {
+        this.tween.pause()
+      }
+    },
     reset: function () {
       if (this.tween !== null) {
-        this.tween.reset()
+        this.tween.reverse()
       }
     }
   },

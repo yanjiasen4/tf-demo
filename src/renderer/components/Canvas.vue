@@ -48,6 +48,7 @@ export default {
           }
           console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
+          node.delay = delay
         }
       }
     },
@@ -71,6 +72,7 @@ export default {
           let duration = Math.max(GPUCost / GPURates, CPUCost / CPURates, IOCost / IORates)
           for (let k = 0; k < layerDeviceNodes.length; k++) {
             layerDeviceNodes[k].duration = duration
+            layerDeviceNodes[k].delay = 0
           }
         }
       }
@@ -98,6 +100,11 @@ export default {
     reset: function () {
       for (let node of this.$refs.nodes) {
         node.reset()
+      }
+    },
+    pause: function () {
+      for (let node of this.$refs.nodes) {
+        node.pause()
       }
     },
     getNodeIndex: function (lid, nid) {
