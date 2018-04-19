@@ -30,7 +30,10 @@ export default {
         radius: this.nodeAttr.radius,
         angle: 0,
         fill: Colors.colors[this.nodeAttr.groupId]
-      }
+      },
+      lid: this.nodeAttr.lid,
+      nid: this.nodeAttr.nid,
+      tween: null
     }
   },
   methods: {
@@ -40,10 +43,19 @@ export default {
         duration: duration,
         angle: 360
       })
+      this.tween = progressTween
+      console.log(`${this.lid}, ${this.nid}, ${this.tween}`)
       setTimeout(() => {
-        progressTween.play()
+        this.tween.play()
       }, delay * 1000)
+    },
+    reset: function () {
+      if (this.tween !== null) {
+        this.tween.reset()
+      }
     }
+  },
+  mounted: function () {
   }
 }
 </script>

@@ -9,6 +9,7 @@
       </v-layer>
     </v-stage>
     <button @click="executeTask">开始任务</button>
+    <button @click="reset">重置</button>
   </div>
 </template>
 
@@ -45,7 +46,7 @@ export default {
             const prevLayer = this.module.layers[i - 1]
             delay = this.getMaxDuration(prevLayer.nodes, node.connectBy)
           }
-          console.log(`lid: ${i}, nid: ${j} start task at ${delay}, duration: ${node.duration}`)
+          console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
         }
       }
@@ -94,8 +95,18 @@ export default {
         }
       }
     },
+    reset: function () {
+      for (let node of this.$refs.nodes) {
+        node.reset()
+      }
+    },
     getNodeIndex: function (lid, nid) {
-      return lid === 0 ? nid : this.nodesNumArray[lid - 1] + nid
+      if (lid === 0) return nid
+      let accNodeIndex = 0
+      for (let i = 1; i <= lid; i++) {
+        accNodeIndex += this.nodesNumArray[i - 1]
+      }
+      return accNodeIndex + nid
     },
     getMaxDuration: function (nodes, indices) {
       let maxDuration = 0
@@ -136,7 +147,9 @@ export default {
           x: nodeX,
           y: nodeY,
           radius: 50,
-          groupId: node.group
+          groupId: node.group,
+          lid: i,
+          nid: j
         })
       }
     }
@@ -161,6 +174,7 @@ export default {
     }
   },
   mounted: function () {
+    console.log(this.$refs.nodes)
     this.$refs.nodesLayer.getStage().moveToTop()
   }
 }
