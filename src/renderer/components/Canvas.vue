@@ -51,6 +51,10 @@ export default {
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
         }
       }
+
+      for (let flow of this.$refs.flows) {
+        flow.progress()
+      }
     },
     executeTask: function () {
       this.createDevicesSetting()
@@ -73,7 +77,6 @@ export default {
           for (let k = 0; k < layerDeviceNodes.length; k++) {
             let node = layerDeviceNodes[k]
             node.duration = duration
-            console.log(node.delay)
             node.delay = 1
             if (i > 0) {
               const prevLayer = this.module.layers[i - 1]
@@ -81,7 +84,6 @@ export default {
             } else {
               node.delay = 0
             }
-            console.log(node.delay)
           }
         }
       }
@@ -109,6 +111,9 @@ export default {
     reset: function () {
       for (let node of this.$refs.nodes) {
         node.reset()
+      }
+      for (let flow of this.$refs.flows) {
+        flow.reset()
       }
     },
     pause: function () {
