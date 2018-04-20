@@ -68,23 +68,22 @@ export default {
         rotation: newalpha * 180 / Math.PI + 90
       },
       finalx: finalx,
-      finaly: finaly
+      finaly: finaly,
+      tween: null
     }
   },
   methods: {
     progress: function (duration, delay) {
-      console.log(this.$refs.recR.getStage())
-      const progressTween2 = new Tween({
+      const progressTween = new Tween({
         node: this.$refs.recR.getStage(),
         x: this.finalx,
         y: this.finaly,
         duration: duration
       })
-      this.tween = progressTween2
-      // console.log(`${this.lid}, ${this.nid}, ${this.tween}`)
+      this.tween = progressTween
       setTimeout(() => {
         this.tween.play()
-      }, delay)
+      }, delay * 1000)
     },
     pause: function () {
       if (this.tween !== null) {

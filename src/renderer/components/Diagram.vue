@@ -20,7 +20,7 @@ import Module from '../assets/modules/md1'
 import Devices from '../assets/devices/devs'
 
 export default {
-  name: 'Canvas',
+  name: 'Diagram',
   components: { Node, Flow },
   data () {
     return {
@@ -33,6 +33,7 @@ export default {
       configNodes: [],
       configFlows: [],
       nodesNumArray: [],
+      flowsNumArray: [],
       devicesSetting: []
     }
   },
@@ -46,15 +47,18 @@ export default {
           if (i > 0 && node.connectBy.length > 0) {
             const prevLayer = this.module.layers[i - 1]
             delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy) + i * dataFlowDuration
-            console.log(`animation: ${delay}`)
+            // console.log(`animation: ${delay}`)
           }
-          console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
+
+          // flow animation
+          for (let k = 0; k < node.connections.length; k++) {
+            const flowIndex = this.getFlowIndex(i, j, k)
+            // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
+            this.$refs.flows[flowIndex].progress(dataFlowDuration, delay + node.duration)
+          }
+          // console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
         }
-      }
-
-      for (let flow of this.$refs.flows) {
-        flow.progress()
       }
     },
     executeTask: function () {
@@ -102,10 +106,19 @@ export default {
       }
     },
     createDevicesSetting: function () {
+      this.clearDevicesSetting()
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
           const node = this.module.layers[i].nodes[j]
           this.devicesSetting[i][node.group].push(node)
+        }
+      }
+    },
+    clearDevicesSetting: function () {
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+          const node = this.module.layers[i].nodes[j]
+          this.devicesSetting[i][node.group] = []
         }
       }
     },
@@ -129,6 +142,12 @@ export default {
         accNodeIndex += this.nodesNumArray[i - 1]
       }
       return accNodeIndex + nid
+    },
+    getFlowIndex: function (lid, nid, cid) {
+      const nodeIndex = this.getNodeIndex(lid, nid)
+      // console.log(`node index: ${nodeIndex}`)
+      if (nodeIndex === 0) return cid
+      else return this.flowsNumArray[nodeIndex - 1] + cid
     },
     getMaxDuration: function (nodes, indices) {
       let maxDuration = 0
@@ -170,6 +189,8 @@ export default {
     const moduleHeight = layerHeight * this.module.layersNum
     const nodeWidth = 250
     const moduleY = 800 - (800 - moduleHeight) / 2 - nodeWidth / 2
+
+    let flowCount = 0
     for (let i in this.module.layers) {
       // record nodesNum of each layer
       this.nodesNumArray.push(this.module.layers[i].nodesNum)
@@ -192,6 +213,10 @@ export default {
           lid: i,
           nid: j
         })
+
+        // calculate connections number
+        flowCount += node.connections.length
+        this.flowsNumArray.push(flowCount)
       }
     }
     // create flows
