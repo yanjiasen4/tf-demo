@@ -8,8 +8,10 @@
         <flow v-for="(flow, index) of configFlows" :flowAttr='flow' ref="flows" :key="index"></flow>
       </v-layer>
     </v-stage>
-    <button @click="executeTask">开始任务</button>
-    <button @click="reset">重置</button>
+    <el-row class="button-pannel">
+      <el-button @click="executeTask" :loading="progressing">开始任务</el-button>
+      <el-button @click="reset">重置</el-button>
+    </el-row>
   </div>
 </template>
 
@@ -17,15 +19,16 @@
 import Node from './Shapes/Node'
 import Flow from './Shapes/Flow'
 import Module from '../assets/modules/md1'
-import Devices from '../assets/devices/devs'
+// import Devices from '../assets/devices/devs'
 
 export default {
   name: 'Diagram',
   components: { Node, Flow },
+  props: ['devices'],
   data () {
     return {
       module: null,
-      devices: null,
+      // devices: null,
       configKonva: {
         width: 1000,
         height: 800
@@ -34,7 +37,8 @@ export default {
       configFlows: [],
       nodesNumArray: [],
       flowsNumArray: [],
-      devicesSetting: []
+      devicesSetting: [],
+      progressing: false
     }
   },
   methods: {
@@ -181,7 +185,7 @@ export default {
   created: function () {
     // create nodes
     this.module = Module.module
-    this.devices = Devices.deviceConfig.dev1
+    // this.devices = Devices.deviceConfig.dev1
     this.initDevicesSetting()
 
     const layerWidth = 1000
@@ -240,11 +244,14 @@ export default {
     }
   },
   mounted: function () {
+    // move nodes to the top layer
     this.$refs.nodesLayer.getStage().moveToTop()
   }
 }
 </script>
 
 <style scoped>
-
+.button-pannel {
+  text-align: center;
+}
 </style>

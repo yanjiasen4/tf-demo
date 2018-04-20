@@ -3,6 +3,7 @@ import axios from 'axios'
 import VueKonva from 'vue-konva'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import './assets/icon/iconfont.css'
 
 import App from './App'
 import router from './router'
