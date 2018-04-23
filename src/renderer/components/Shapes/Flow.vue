@@ -3,12 +3,11 @@
     <v-line :config="configLineL" ref="lineL"></v-line>
     <v-line :config="configLineR" ref="lineR"></v-line>
     <v-rect :config="configRectangle" ref="recR"></v-rect>
-    <!-- TODO: Arrow Line -->
   </div>
 </template>
 
 <script>
-import {Tween} from 'konva'
+import { Tween } from 'konva'
 export default {
   name: 'Flow',
   props: ['flowAttr'],
@@ -93,6 +92,14 @@ export default {
     reset: function () {
       if (this.tween !== null) {
         this.tween.reverse()
+      }
+    },
+    reverse: function (delay) {
+      if (this.tween !== null) {
+        setTimeout(() => {
+          console.log(`reverse: ${delay}`)
+          this.tween.reverse()
+        }, delay * 1000)
       }
     }
   }

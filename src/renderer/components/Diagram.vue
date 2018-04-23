@@ -38,19 +38,20 @@ export default {
       nodesNumArray: [],
       flowsNumArray: [],
       devicesSetting: [],
-      progressing: false
+      progressing: false,
+      dataFlowDuration: 1
     }
   },
   methods: {
     startAnimation: function () {
-      const dataFlowDuration = 1
+      let lastAnimationFinished = 0
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodes.length; j++) {
           const node = this.module.layers[i].nodes[j]
           let delay = 0
           if (i > 0 && node.connectBy.length > 0) {
             const prevLayer = this.module.layers[i - 1]
-            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy) + i * dataFlowDuration
+            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy) + i * this.dataFlowDuration
             // console.log(`animation: ${delay}`)
           }
 
@@ -58,10 +59,25 @@ export default {
           for (let k = 0; k < node.connections.length; k++) {
             const flowIndex = this.getFlowIndex(i, j, k)
             // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
-            this.$refs.flows[flowIndex].progress(dataFlowDuration, delay + node.duration)
+            this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration)
           }
           // console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
           this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
+
+          lastAnimationFinished = delay + node.duration
+        }
+      }
+      console.log(lastAnimationFinished)
+      this.backPropogation(lastAnimationFinished + 1) // wait for 1s
+    },
+    backPropogation: function (delay) {
+      for (let i = this.module.layersNum - 1; i >= 0; i--) {
+        for (let j = this.module.layers[i].nodes.length - 1; j >= 0; j--) {
+          const node = this.module.layers[i].nodes[j]
+          for (let k = 0; k < node.connections.length; k++) {
+            const flowIndex = this.getFlowIndex(i, j, k)
+            this.$refs.flows[flowIndex].reverse(delay + this.dataFlowDuration * (this.module.layersNum - i))
+          }
         }
       }
     },
