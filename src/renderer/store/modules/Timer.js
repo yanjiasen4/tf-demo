@@ -1,20 +1,17 @@
 const state = {
-  main: 0
+  time: 0
 }
 
 const mutations = {
-  DECREMENT_MAIN_COUNTER (state) {
-    state.main--
-  },
-  INCREMENT_MAIN_COUNTER (state) {
-    state.main++
+  SET_TIME (state, payload) {
+    state.time = payload.time
   }
 }
 
 const actions = {
   someAsyncTask ({ commit }) {
     // do something async
-    commit('INCREMENT_MAIN_COUNTER')
+    commit('SET_TIME')
   }
 }
 

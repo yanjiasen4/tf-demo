@@ -11,52 +11,72 @@
       </el-row>
     </el-header>
     <el-main class="main">
-      <el-col :span="18" class="canvas">
-        <diagram :devices="devices"></diagram>
-      </el-col>
-      <el-col :span="6" class="device-wrapper">
-        <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="test(index)" @mouseleave.native="test1(index)">
-          <el-row class="device-header">
-            <span>机器编号 {{ dev.did }}</span>
-            <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
+      <el-row>
+        <timer ref="timer"></timer>
+      </el-row>
+      <el-row>
+        <el-col :span="4">
+          <span>timer pannel</span>
+        </el-col>
+        <el-col :span="14">
+          <diagram :devices="devices" class="canvas" ref="diagram"></diagram>
+          <el-row class="button-pannel">
+            <el-button @click="executeTask" :loading="progressing">开始任务</el-button>
+            <el-button @click="reset">重置</el-button>
           </el-row>
-          <el-row class="device-info">
-            <el-col :span="12">
-              <el-row>
-                <i class="el-icon-imp-cpu"></i>
-              </el-row>
-              <span class="attr">CPU</span>
-              <h4>{{ dev.CPURate }}</h4>
-            </el-col>
-            <el-col :span="12">
-              <el-row>
-                <i class="el-icon-imp-CPUchuliqi"></i>
-              </el-row>
-              <span class="attr">GPU</span>
-              <h4>{{ dev.GPURate }}</h4>
-            </el-col>
-            <!-- <el-col :span="8">
-                <el-row>
-                  <i class="el-icon-imp-chuanshu"></i>
-                </el-row>
-                <span class="attr">I/O</span>
-                <h4>{{ dev.IORate }}</h4>
-              </el-col> -->
-          </el-row>
-          <transition name="pull">
-            <el-row class="device-setting" v-if="dev.hover">
-              <el-row>
-                <span>GPU</span>
-                <el-slider v-model="dev.GPURate"></el-slider>
-              </el-row>
-              <el-row>
-                <span>CPU</span>
-                <el-slider v-model="dev.CPURate"></el-slider>
-              </el-row>
+        </el-col>
+        <el-col :span="6" class="device-wrapper">
+          <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="dev.hover = true" @mouseleave.native="dev.hover = false">
+            <el-row class="device-header">
+              <span>机器编号 {{ dev.did }}</span>
+              <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
             </el-row>
-          </transition>
-        </el-row>
-      </el-col>
+            <el-row class="device-info">
+              <el-col :span="12">
+                <el-row>
+                  <i class="el-icon-imp-cpu"></i>
+                </el-row>
+                <span class="attr">CPU</span>
+                <h4>{{ dev.CPURate }}</h4>
+              </el-col>
+              <el-col :span="12">
+                <el-row>
+                  <i class="el-icon-imp-CPUchuliqi"></i>
+                </el-row>
+                <span class="attr">GPU</span>
+                <h4>{{ dev.GPURate }}</h4>
+              </el-col>
+              <!-- <el-col :span="8">
+                  <el-row>
+                    <i class="el-icon-imp-chuanshu"></i>
+                  </el-row>
+                  <span class="attr">I/O</span>
+                  <h4>{{ dev.IORate }}</h4>
+                </el-col> -->
+            </el-row>
+            <transition name="pull">
+              <el-row class="device-setting" v-if="dev.hover">
+                <el-row>
+                  <el-col :span="6" class="slider-tag">
+                    <span>GPU</span>
+                  </el-col>
+                  <el-col :span="18" class="slider-wrapper">
+                    <el-slider v-model="dev.GPURate" :max="maxRate"></el-slider>
+                  </el-col>
+                </el-row>
+                <el-row>
+                  <el-col :span="6" class="slider-tag">
+                    <span>CPU</span>
+                  </el-col>
+                  <el-col :span="18" class="slider-wrapper">
+                    <el-slider v-model="dev.CPURate" :max="maxRate"></el-slider>
+                  </el-col>
+                </el-row>
+              </el-row>
+            </transition>
+          </el-row>
+        </el-col>
+      </el-row>
     </el-main>
   </el-container>
 </template>
@@ -64,12 +84,13 @@
 <script>
   import Devices from '../assets/devices/devs'
   import Diagram from './Diagram'
+  import Timer from './Timer'
   import Colors from '../assets/colorsTable'
 
   export default {
     name: 'main-page',
     components: {
-      Diagram
+      Diagram, Timer
     },
     data () {
       let devs = Devices.deviceConfig.dev1.devs
@@ -78,19 +99,20 @@
       }
       return {
         devices: Devices.deviceConfig.dev1,
-        colors: Colors.colors
+        colors: Colors.colors,
+        maxRate: 30,
+        progressing: false
       }
     },
     methods: {
-      test: function (index) {
-        console.log(`before in: ${this.devices.devs[index].hover}`)
-        this.devices.devs[index].hover = true
-        console.log(`after in: ${this.devices.devs[index].hover}`)
+      executeTask: function () {
+        this.$refs.diagram.executeTask()
+        this.$refs.timer.startProgress(this.$store.state.Timer.time)
+        this.progressing = this.progressing
       },
-      test1: function (index) {
-        console.log(`before out: ${this.devices.devs[index].hover}`)
-        this.devices.devs[index].hover = false
-        console.log(`after out: ${this.devices.devs[index].hover}`)
+      reset: function () {
+        this.$refs.diagram.reset()
+        this.$refs.timer.reset()
       }
     }
   }
@@ -129,7 +151,7 @@
 
   .main {
     background: rgb(248, 248, 248);
-    padding-right: 0;
+    padding: 0 0 12px 0;
     border-top: 1px solid #ebebeb;
     border-bottom: 1px solid #ebebeb;
   }
@@ -138,8 +160,20 @@
     box-shadow: 0 0 8px 0 rgba(232, 237, 250, .6);
   }
 
+  .button-pannel {
+    text-align: center;
+  }
+
+  .canvas:after {
+    clear: both;
+    display: block;
+    visibility: hidden;
+    height: 0;
+  }
+
   .device-wrapper {
     padding: 10px 0px 10px 10px;
+    margin-top: 60px;
   }
 
   .device-pannel {
@@ -195,5 +229,13 @@
   .pull-enter,
   .pull-leave {
     opacity: 0;
+  }
+
+  .slider-wrapper {
+    padding: 6px 16px 6px 0px;
+  }
+
+  .slider-tag {
+    padding: 14px 0 8px 18px;
   }
 </style>

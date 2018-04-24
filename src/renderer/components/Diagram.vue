@@ -8,10 +8,6 @@
         <flow v-for="(flow, index) of configFlows" :flowAttr='flow' ref="flows" :key="index"></flow>
       </v-layer>
     </v-stage>
-    <el-row class="button-pannel">
-      <el-button @click="executeTask" :loading="progressing">开始任务</el-button>
-      <el-button @click="reset">重置</el-button>
-    </el-row>
   </div>
 </template>
 
@@ -22,7 +18,7 @@ import Module from '../assets/modules/md1'
 // import Devices from '../assets/devices/devs'
 
 export default {
-  name: 'Diagram',
+  name: 'diagram',
   components: { Node, Flow },
   props: ['devices'],
   data () {
@@ -68,18 +64,25 @@ export default {
         }
       }
       console.log(lastAnimationFinished)
-      this.backPropogation(lastAnimationFinished + 1) // wait for 1s
+      let backPropogationFinished = this.backPropogation(lastAnimationFinished) // wait for 1s
+      this.$store.commit({
+        type: 'SET_TIME',
+        time: backPropogationFinished
+      })
     },
     backPropogation: function (delay) {
+      let backPropogationFinished = 0
       for (let i = this.module.layersNum - 1; i >= 0; i--) {
         for (let j = this.module.layers[i].nodes.length - 1; j >= 0; j--) {
           const node = this.module.layers[i].nodes[j]
           for (let k = 0; k < node.connections.length; k++) {
             const flowIndex = this.getFlowIndex(i, j, k)
-            this.$refs.flows[flowIndex].reverse(delay + this.dataFlowDuration * (this.module.layersNum - i))
+            this.$refs.flows[flowIndex].reverse(delay + this.dataFlowDuration * (this.module.layersNum - i - 1))
+            backPropogationFinished = delay + this.dataFlowDuration * (this.module.layersNum - i)
           }
         }
       }
+      return backPropogationFinished
     },
     executeTask: function () {
       this.createDevicesSetting()
@@ -231,7 +234,9 @@ export default {
           radius: 50,
           groupId: node.group,
           lid: i,
-          nid: j
+          nid: j,
+          GPUCost: node.cost[0],
+          CPUCost: node.cost[1]
         })
 
         // calculate connections number
@@ -267,7 +272,4 @@ export default {
 </script>
 
 <style scoped>
-.button-pannel {
-  text-align: center;
-}
 </style>

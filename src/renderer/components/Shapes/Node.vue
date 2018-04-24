@@ -82,7 +82,7 @@ export default {
         shadowOpacity: 0.2
       }))
       label.add(new Text({
-        text: `node: test`,
+        text: `node: \nGPU: ${this.nodeAttr.GPUCost}\nCPU: ${this.nodeAttr.CPUCost}`,
         fontFamily: 'Calibri',
         fontSize: 18,
         padding: 5,
