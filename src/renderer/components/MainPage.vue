@@ -15,34 +15,46 @@
         <diagram :devices="devices"></diagram>
       </el-col>
       <el-col :span="6" class="device-wrapper">
-        <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index">
+        <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="test(index)" @mouseleave.native="test1(index)">
           <el-row class="device-header">
             <span>机器编号 {{ dev.did }}</span>
             <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
           </el-row>
           <el-row class="device-info">
-            <el-col :span="8">
+            <el-col :span="12">
               <el-row>
                 <i class="el-icon-imp-cpu"></i>
               </el-row>
               <span class="attr">CPU</span>
               <h4>{{ dev.CPURate }}</h4>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="12">
               <el-row>
                 <i class="el-icon-imp-CPUchuliqi"></i>
               </el-row>
               <span class="attr">GPU</span>
               <h4>{{ dev.GPURate }}</h4>
             </el-col>
-            <el-col :span="8">
-              <el-row>
-                <i class="el-icon-imp-chuanshu"></i>
-              </el-row>
-              <span class="attr">I/O</span>
-              <h4>{{ dev.IORate }}</h4>
-            </el-col>
+            <!-- <el-col :span="8">
+                <el-row>
+                  <i class="el-icon-imp-chuanshu"></i>
+                </el-row>
+                <span class="attr">I/O</span>
+                <h4>{{ dev.IORate }}</h4>
+              </el-col> -->
           </el-row>
+          <transition name="pull">
+            <el-row class="device-setting" v-if="dev.hover">
+              <el-row>
+                <span>GPU</span>
+                <el-slider v-model="dev.GPURate"></el-slider>
+              </el-row>
+              <el-row>
+                <span>CPU</span>
+                <el-slider v-model="dev.CPURate"></el-slider>
+              </el-row>
+            </el-row>
+          </transition>
         </el-row>
       </el-col>
     </el-main>
@@ -56,14 +68,30 @@
 
   export default {
     name: 'main-page',
-    components: { Diagram },
+    components: {
+      Diagram
+    },
     data () {
+      let devs = Devices.deviceConfig.dev1.devs
+      for (let i = 0; i < Devices.deviceConfig.dev1.devNum; i++) {
+        devs[i].hover = false
+      }
       return {
         devices: Devices.deviceConfig.dev1,
         colors: Colors.colors
       }
     },
     methods: {
+      test: function (index) {
+        console.log(`before in: ${this.devices.devs[index].hover}`)
+        this.devices.devs[index].hover = true
+        console.log(`after in: ${this.devices.devs[index].hover}`)
+      },
+      test1: function (index) {
+        console.log(`before out: ${this.devices.devs[index].hover}`)
+        this.devices.devs[index].hover = false
+        console.log(`after out: ${this.devices.devs[index].hover}`)
+      }
     }
   }
 </script>
@@ -77,7 +105,9 @@
     padding: 0;
   }
 
-  body { font-family: 'Source Sans Pro', "PingFang SC", sans-serif; }
+  body {
+    font-family: 'Source Sans Pro', "PingFang SC", sans-serif;
+  }
 
   .header {
     min-height: 100px;
@@ -88,6 +118,7 @@
     background-size: cover;
     background-position: center; */
   }
+
   .header h1 {
     padding-top: 8px;
     text-align: center;
@@ -104,7 +135,11 @@
   }
 
   .main:hover {
-    box-shadow: 0 0 8px 0 rgba(232,237,250,.6);
+    box-shadow: 0 0 8px 0 rgba(232, 237, 250, .6);
+  }
+
+  .device-wrapper {
+    padding: 10px 0px 10px 10px;
   }
 
   .device-pannel {
@@ -118,7 +153,7 @@
   }
 
   .device-pannel:hover {
-    box-shadow: 0 4px 12px 0 rgba(232,237,250,.8);
+    box-shadow: 0 4px 12px 0 rgba(232, 237, 250, .8);
   }
 
   .device-header {
@@ -147,5 +182,18 @@
 
   span .attr {
     font-size: 16px;
+  }
+
+  .pull-enter-active {
+    transition: all .5s;
+  }
+
+  .pull-leave-active {
+    transition: all 0;
+  }
+
+  .pull-enter,
+  .pull-leave {
+    opacity: 0;
   }
 </style>
