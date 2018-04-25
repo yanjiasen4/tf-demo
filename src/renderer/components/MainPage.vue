@@ -15,13 +15,22 @@
         <timer ref="timer"></timer>
       </el-row>
       <el-row>
-        <el-col :span="4" class="timer-wrapper">
-          <el-row class="timer-pannel">
-
+        <el-col :span="5" class="timer-wrapper">
+          <el-row class="timer-header">
+            <h1>任务消耗时间</h1>
           </el-row>
           <el-row class="timer-records">
             <transition-group name="bar">
-              <el-row v-for="(roc, index) of records" class="timer-bar"></el-row>
+              <el-row v-for="(roc, index) of records" :key="index">
+                <el-col :span="22" class="timer-list">
+                  <div class="timer-bar" :style="{ width: (100 * roc.width) + '%' }">
+                    <p>{{ roc.time }}s</p>
+                  </div>
+                </el-col>
+                <el-col :span="2" class="timer-tag">
+                  <span>#{{ roc.name }}</span>
+                </el-col>
+              </el-row>
             </transition-group>
           </el-row>
         </el-col>
@@ -32,7 +41,7 @@
             <el-button @click="reset">重置</el-button>
           </el-row>
         </el-col>
-        <el-col :span="6" class="device-wrapper">
+        <el-col :span="5" class="device-wrapper">
           <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="dev.hover = true" @mouseleave.native="dev.hover = false">
             <el-row class="device-header">
               <span>机器编号 {{ dev.did }}</span>
@@ -122,19 +131,30 @@
     },
     methods: {
       executeTask: function () {
-        const time = this.$store.state.Timer.time
         this.$refs.diagram.executeTask()
-        this.$refs.timer.startProgress(this.$store.state.Timer.time)
+        this.$refs.timer.startProgress(this.time)
         this.records.push({
           name: this.taskName,
-          time: time
+          time: this.time
         })
         this.taskName += 1
+        this.calcBarWidthPercent()
         this.progressing = this.progressing
       },
       reset: function () {
         this.$refs.diagram.reset()
         this.$refs.timer.reset()
+      },
+      calcBarWidthPercent: function () {
+        let max = 0
+        for (let roc of this.records) {
+          console.log(roc.time)
+          if (max < roc.time) max = roc.time
+        }
+        console.log(max)
+        this.records.forEach(element => {
+          element.width = element.time / max
+        })
       }
     }
   }
@@ -252,5 +272,55 @@
 
   .slider-tag {
     padding: 14px 0 8px 18px;
+  }
+
+  .timer-wrapper {
+    padding: 20px 12px 20px 0;
+    margin-top: 60px;
+    background: white;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    border-right: 1px solid #ebebeb;
+    border-radius: 4px;
+  }
+
+  .timer-wrapper:hover {
+    box-shadow: 0 4px 12px 0 rgba(232, 237, 250, .8);
+  }
+
+  .timer-wrapper .timer-header {
+    text-align: center;
+    padding: 4px 8px 8px 4px;
+    margin-left: 8px;
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  .timer-wrapper .timer-header h1 {
+    text-align: center;
+  }
+
+  .timer-wrapper .timer-records {
+    padding: 12px 0 0 0;
+  }
+
+  .timer-list {
+    padding: 0 8px 0 0;
+  }
+
+  .timer-bar {
+    background: #3b88fc;
+    height: 16px;
+    margin: 8px 4px 0 0;
+    padding: 0 4px 0 0;
+  }
+
+  .timer-bar p {
+    text-align: right;
+    color: white;
+    line-height: 14px;
+  }
+
+  .timer-tag {
+    padding-top: 4px;
   }
 </style>

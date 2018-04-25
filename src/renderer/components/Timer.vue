@@ -19,18 +19,20 @@ export default {
   },
   methods: {
     startProgress: function (totalTime) {
-      console.log(totalTime)
-      const interval = 33
+      totalTime *= 1000 // ms
+      const interval = 66
       this.totalTime = totalTime
+      console.log(totalTime)
       if (this.timer !== null) {
         clearInterval(this.timer)
       }
       this.timer = setInterval(() => {
         this.time += interval
+        if (this.time > totalTime) this.time = totalTime
       }, interval)
       setTimeout(() => {
         clearInterval(this.timer)
-      }, totalTime * 1000 + interval)
+      }, totalTime + 1 * interval)
     },
     reset: function () {
       this.time = 0
@@ -40,7 +42,7 @@ export default {
   computed: {
     barWidthPercent: function () {
       if (this.totalTime === 0) return 0
-      else return 100 * (this.time / this.totalTime / 1000)
+      else return 100 * (this.time / this.totalTime)
     }
   }
 }
