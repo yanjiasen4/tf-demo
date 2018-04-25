@@ -15,8 +15,15 @@
         <timer ref="timer"></timer>
       </el-row>
       <el-row>
-        <el-col :span="4">
-          <span>timer pannel</span>
+        <el-col :span="4" class="timer-wrapper">
+          <el-row class="timer-pannel">
+
+          </el-row>
+          <el-row class="timer-records">
+            <transition-group>
+              <el-row v-for="(roc, index) of records"></el-row>
+            </transition-group>
+          </el-row>
         </el-col>
         <el-col :span="14">
           <diagram :devices="devices" class="canvas" ref="diagram"></diagram>
@@ -101,7 +108,8 @@
         devices: Devices.deviceConfig.dev1,
         colors: Colors.colors,
         maxRate: 30,
-        progressing: false
+        progressing: false,
+        records: []
       }
     },
     methods: {
