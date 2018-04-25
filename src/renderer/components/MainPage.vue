@@ -20,8 +20,8 @@
 
           </el-row>
           <el-row class="timer-records">
-            <transition-group>
-              <el-row v-for="(roc, index) of records"></el-row>
+            <transition-group name="bar">
+              <el-row v-for="(roc, index) of records" class="timer-bar"></el-row>
             </transition-group>
           </el-row>
         </el-col>
@@ -94,6 +94,8 @@
   import Timer from './Timer'
   import Colors from '../assets/colorsTable'
 
+  import { mapState } from 'vuex'
+
   export default {
     name: 'main-page',
     components: {
@@ -109,13 +111,25 @@
         colors: Colors.colors,
         maxRate: 30,
         progressing: false,
+        taskName: 1,
         records: []
       }
     },
+    computed: {
+      ...mapState({
+        time: state => state.Timer.time
+      })
+    },
     methods: {
       executeTask: function () {
+        const time = this.$store.state.Timer.time
         this.$refs.diagram.executeTask()
         this.$refs.timer.startProgress(this.$store.state.Timer.time)
+        this.records.push({
+          name: this.taskName,
+          time: time
+        })
+        this.taskName += 1
         this.progressing = this.progressing
       },
       reset: function () {
@@ -170,13 +184,6 @@
 
   .button-pannel {
     text-align: center;
-  }
-
-  .canvas:after {
-    clear: both;
-    display: block;
-    visibility: hidden;
-    height: 0;
   }
 
   .device-wrapper {
