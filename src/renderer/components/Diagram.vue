@@ -71,11 +71,6 @@ export default {
         }
       }
       let backPropogationFinished = this.backPropogation(lastAnimationFinished)
-
-      // setTimeout(() => {
-      //   this.startAnimation()
-      // }, backPropogationFinished * 1000)
-      // commit time task cost to store
       this.$store.commit({
         type: 'SET_TIME',
         time: backPropogationFinished
@@ -108,8 +103,17 @@ export default {
       }
     },
     executeTaskSync: function () {
-      // const batch = 4
+      const batch = 4
       this.createDevicesSetting()
+      this.setRepairedNodes()
+      this.calcDelayDuration()
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; i++) {
+          for (let k = 0; k < batch; k++) {
+            // [TODO]
+          }
+        }
+      }
     },
     calcDelayDuration: function () {
       for (let i = 0; i < this.devicesSetting.length; i++) { // layer
@@ -253,7 +257,6 @@ export default {
   created: function () {
     // create nodes
     this.module = Module.module
-    // this.devices = Devices.deviceConfig.dev1
     this.initDevicesSetting()
 
     const layerWidth = 1000
