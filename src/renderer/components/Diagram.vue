@@ -40,14 +40,14 @@ export default {
     }
   },
   methods: {
-    startAnimation: function () {
+    startAnimation: function (startTime, iter) {
       let lastAnimationFinished = 0
       // const recoverTime = 2
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodes.length; j++) {
           const node = this.module.layers[i].nodes[j]
           const nodeIndex = this.getNodeIndex(i, j)
-          let delay = node.delay
+          let delay = node.delay + startTime
           if (i > 0 && node.connectBy.length > 0) {
             // const prevLayer = this.module.layers[i - 1]
             delay += i * this.dataFlowDuration
@@ -62,25 +62,29 @@ export default {
           }
           // console.log(`lid: ${i}, nid: ${j} nindex: ${nodeIndex}, start task at ${delay}, duration: ${node.duration}`)
 
-          this.$refs.nodes[nodeIndex].progress(node.duration, delay)
+          this.$refs.nodes[nodeIndex].progress(node.duration, delay, iter)
           if (node.repair !== 0) {
             this.$refs.nodes[nodeIndex].repair(delay)
+            node.repair = 0
           }
           lastAnimationFinished = delay + node.duration
         }
       }
-      console.log(lastAnimationFinished)
       let backPropogationFinished = this.backPropogation(lastAnimationFinished)
+
+      // setTimeout(() => {
+      //   this.startAnimation()
+      // }, backPropogationFinished * 1000)
       // commit time task cost to store
       this.$store.commit({
         type: 'SET_TIME',
         time: backPropogationFinished
       })
+      return backPropogationFinished
     },
     backPropogation: function (delay) {
       let backPropogationFinished = 0
       for (let i = this.module.layersNum - 1; i >= 0; i--) {
-        console.log(i)
         for (let j = this.module.layers[i].nodes.length - 1; j >= 0; j--) {
           const node = this.module.layers[i].nodes[j]
           for (let k = 0; k < node.connections.length; k++) {
@@ -93,8 +97,21 @@ export default {
       return backPropogationFinished
     },
     executeTask: function () {
+      const batch = 4
       this.createDevicesSetting()
-
+      this.setRepairedNodes()
+      this.calcDelayDuration()
+      let startTime = this.startAnimation(0, 0)
+      for (let i = 1; i < batch; i++) {
+        this.calcDelayDuration()
+        startTime = this.startAnimation(startTime, i)
+      }
+    },
+    executeTaskSync: function () {
+      // const batch = 4
+      this.createDevicesSetting()
+    },
+    calcDelayDuration: function () {
       for (let i = 0; i < this.devicesSetting.length; i++) { // layer
         for (let j = 0; j < this.devicesSetting[i].length; j++) { // device
           let GPUCost = 0
@@ -112,11 +129,8 @@ export default {
           const duration = Math.max(GPUCost / GPURates, CPUCost / CPURates)
           for (let k = 0; k < layerDeviceNodes.length; k++) {
             const node = layerDeviceNodes[k]
-            const nodeIndex = this.getNodeIndex(i, node.nid)
-            const nodeRef = this.$refs.nodes[nodeIndex]
             node.duration = duration
             node.delay = 0
-            node.repair = 0
             if (i > 0) {
               const prevLayer = this.module.layers[i - 1]
               node.delay = Math.max(this.getMaxTime2Wait(prevLayer.nodes, node.connectBy), node.delay + this.getRepairTime(i - 1))
@@ -124,18 +138,28 @@ export default {
               node.delay = 0
             }
             // node dead
-            if (!nodeRef.alive) {
-              node.repair = this.nodeRepairCost
-            }
+            // if (!nodeRef.alive) {
+            //   node.repair = this.nodeRepairCost
+            // }
             node.delay += node.repair
             // console.log(`lid: ${i}, nid: ${node.nid}, delay: ${node.delay}, duration: ${node.duration}`)
           }
         }
       }
-
-      this.startAnimation()
     },
-    executeTaskYsnc: function () {
+    setRepairedNodes: function () {
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+          const node = this.module.layers[i].nodes[j]
+          const nodeIndex = this.getNodeIndex(i, j)
+          const nodeRef = this.$refs.nodes[nodeIndex]
+          if (!nodeRef.alive) {
+            node.repair = this.nodeRepairCost
+          } else {
+            node.repair = 0
+          }
+        }
+      }
     },
     initDevicesSetting: function () {
       for (let i = 0; i < this.module.layersNum; i++) {

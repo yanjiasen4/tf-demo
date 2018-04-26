@@ -1,7 +1,8 @@
 <template>
   <div>
     <v-circle :config="configCircle" ref="node"></v-circle>
-    <v-wedge :config="configWedge" ref="wedge"></v-wedge>
+    <v-wedge :config="configWedgeEven" ref="wedgeEven"></v-wedge>
+    <v-wedge :config="configWedgeOdd" ref="wedgeOdd"></v-wedge>
     <v-label :config="configLabel" ref="label"></v-label>
 
     <!-- crash signal -->
@@ -39,12 +40,19 @@ export default {
         visible: false,
         opacity: 0.75
       },
-      configWedge: {
+      configWedgeOdd: {
         x: this.nodeAttr.x,
         y: this.nodeAttr.y,
         radius: this.nodeAttr.radius,
         angle: 0,
-        fill: Colors.colors[this.nodeAttr.groupId]
+        fill: Colors.dataColors[0]
+      },
+      configWedgeEven: {
+        x: this.nodeAttr.x,
+        y: this.nodeAttr.y,
+        radius: this.nodeAttr.radius,
+        angle: 0,
+        fill: Colors.dataColors[1]
       },
       configLine: {
         points: [lineStarX, lineStarY, lineEndX, lineEndY],
@@ -58,15 +66,21 @@ export default {
     }
   },
   methods: {
-    progress: function (duration, delay) {
-      const progressTween = new Tween({
-        node: this.$refs.wedge.getStage(),
-        duration: duration,
-        angle: 360
-      })
-      this.tween = progressTween
+    progress: function (duration, delay, iter) {
       // console.log(`${this.lid}, ${this.nid}, ${this.tween}`)
       setTimeout(() => {
+        if (this.tween !== null) {
+          this.tween.reset()
+          this.tween.destroy()
+          this.tween = null
+        }
+        const node = iter % 2 === 0 ? this.$refs.wedgeEven : this.$refs.wedgeOdd
+        const progressTween = new Tween({
+          node: node.getStage(),
+          duration: duration,
+          angle: 360
+        })
+        this.tween = progressTween
         this.tween.play()
       }, delay * 1000)
     },
@@ -79,12 +93,11 @@ export default {
       if (this.tween !== null) {
         this.tween.reset()
         this.tween.destroy()
+        this.tween = null
       }
     },
     repair: function (delay) {
-      console.log(delay)
       setTimeout(() => {
-        console.log(`repaired: ${this.alive}`)
         this.alive = true
       }, delay * 1000)
     }
@@ -118,7 +131,10 @@ export default {
       this.$refs.node.getStage().on('mouseover mousemove', (evt) => {
         this.configLabel.visible = true
       })
-      this.$refs.wedge.getStage().on('mouseover mousemove', (evt) => {
+      this.$refs.wedgeEven.getStage().on('mouseover mousemove', (evt) => {
+        this.configLabel.visible = true
+      })
+      this.$refs.wedgeOdd.getStage().on('mouseover mousemove', (evt) => {
         this.configLabel.visible = true
       })
       label.on('mouseout', (evt) => {
@@ -127,13 +143,28 @@ export default {
       this.$refs.node.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
       })
-      this.$refs.wedge.getStage().on('mouseout', (evt) => {
+      this.$refs.wedgeEven.getStage().on('mouseout', (evt) => {
+        this.configLabel.visible = false
+      })
+      this.$refs.wedgeOdd.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
       })
 
       this.$refs.node.getStage().on('click', (evt) => {
         this.alive = !this.alive
-        console.log(`${this.nid} set alive to : ${this.alive}`)
+        if (this.alive !== true) {
+          this.$message({
+            message: `第${this.lid}层，第${this.nid}个节点将会失效`,
+            type: 'error',
+            duration: 1500
+          })
+        } else {
+          this.$message({
+            message: `第${this.lid}层，第${this.nid}个节点设置为正常工作`,
+            type: 'success',
+            duration: 1500
+          })
+        }
       })
     })
   }

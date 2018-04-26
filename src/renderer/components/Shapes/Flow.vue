@@ -97,7 +97,6 @@ export default {
     reverse: function (delay) {
       if (this.tween !== null) {
         setTimeout(() => {
-          console.log(`reverse: ${delay}`)
           this.tween.reverse()
         }, delay * 1000)
       }

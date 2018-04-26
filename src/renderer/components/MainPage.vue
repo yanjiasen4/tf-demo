@@ -24,7 +24,7 @@
               <el-row v-for="(roc, index) of records" :key="index">
                 <el-col :span="22" class="timer-list">
                   <div class="timer-bar" :style="{ width: (100 * roc.width) + '%' }">
-                    <p>{{ roc.time }}s</p>
+                    <p>{{ (roc.time).toFixed(2) }}s</p>
                   </div>
                 </el-col>
                 <el-col :span="2" class="timer-tag">
@@ -240,7 +240,7 @@
   }
 
   .device-header .tag {
-    padding: 0 10px 0 10px;
+    padding: 0 9px 0 9px;
     border-radius: 50%;
   }
 
