@@ -14,16 +14,15 @@
 <script>
 import Node from './Shapes/Node'
 import Flow from './Shapes/Flow'
-import Module from '../assets/modules/md1'
+// import Module from '../assets/modules/md1'
 // import Devices from '../assets/devices/devs'
 
 export default {
   name: 'diagram',
   components: { Node, Flow },
-  props: ['devices'],
+  props: ['devices', 'module'],
   data () {
     return {
-      module: null,
       // devices: null,
       configKonva: {
         width: 1000,
@@ -190,6 +189,67 @@ export default {
         }
       }
     },
+    loadModule: function () {
+      // create nodes
+      this.initDevicesSetting()
+
+      const layerWidth = 1000
+      const layerHeight = 250
+      const moduleHeight = layerHeight * this.module.layersNum
+      const nodeWidth = 250
+      const moduleY = 800 - (800 - moduleHeight) / 2 - nodeWidth / 2
+
+      let flowCount = 0
+      for (let i in this.module.layers) {
+        // record nodesNum of each layer
+        this.nodesNumArray.push(this.module.layers[i].nodesNum)
+        let layerY = moduleY - i * layerHeight
+        let layer = this.module.layers[i]
+        let nodesWidth = nodeWidth * layer.nodesNum
+        let layerLeft = (layerWidth - nodesWidth) / 2 + nodeWidth / 2
+        for (let j in layer.nodes) {
+          // nodes
+          let node = layer.nodes[j]
+          let nodeX = layerLeft + j * nodeWidth
+          let nodeY = layerY
+          node.x = nodeX
+          node.y = nodeY
+          this.configNodes.push({
+            x: nodeX,
+            y: nodeY,
+            radius: 50,
+            groupId: node.group,
+            lid: i,
+            nid: j,
+            GPUCost: node.cost[0],
+            CPUCost: node.cost[1]
+          })
+
+          // calculate connections number
+          flowCount += node.connections.length
+          this.flowsNumArray.push(flowCount)
+        }
+      }
+      // create flows
+      for (let i = 0; i < this.module.layersNum; i++) {
+        const layer = this.module.layers[i]
+        // next layer is not the output layer
+        if (layer.lid < this.module.layersNum - 1) {
+          const nextLayer = this.module.layers[i + 1]
+          for (let node of layer.nodes) {
+            // this node has no connections
+            if (node.connections.length === 0) continue
+            for (let conn of node.connections) {
+              const connNode = nextLayer.nodes[conn]
+              const flowPoints = [node.x, node.y, connNode.x, connNode.y]
+              this.configFlows.push({
+                points: flowPoints
+              })
+            }
+          }
+        }
+      }
+    },
     reset: function () {
       for (let node of this.$refs.nodes) {
         node.reset()
@@ -255,69 +315,10 @@ export default {
     }
   },
   created: function () {
-    // create nodes
-    this.module = Module.module
-    this.initDevicesSetting()
-
-    const layerWidth = 1000
-    const layerHeight = 250
-    const moduleHeight = layerHeight * this.module.layersNum
-    const nodeWidth = 250
-    const moduleY = 800 - (800 - moduleHeight) / 2 - nodeWidth / 2
-
-    let flowCount = 0
-    for (let i in this.module.layers) {
-      // record nodesNum of each layer
-      this.nodesNumArray.push(this.module.layers[i].nodesNum)
-      let layerY = moduleY - i * layerHeight
-      let layer = this.module.layers[i]
-      let nodesWidth = nodeWidth * layer.nodesNum
-      let layerLeft = (layerWidth - nodesWidth) / 2 + nodeWidth / 2
-      for (let j in layer.nodes) {
-        // nodes
-        let node = layer.nodes[j]
-        let nodeX = layerLeft + j * nodeWidth
-        let nodeY = layerY
-        node.x = nodeX
-        node.y = nodeY
-        this.configNodes.push({
-          x: nodeX,
-          y: nodeY,
-          radius: 50,
-          groupId: node.group,
-          lid: i,
-          nid: j,
-          GPUCost: node.cost[0],
-          CPUCost: node.cost[1]
-        })
-
-        // calculate connections number
-        flowCount += node.connections.length
-        this.flowsNumArray.push(flowCount)
-      }
-    }
-    // create flows
-    for (let i = 0; i < this.module.layersNum; i++) {
-      const layer = this.module.layers[i]
-      // next layer is not the output layer
-      if (layer.lid < this.module.layersNum - 1) {
-        const nextLayer = this.module.layers[i + 1]
-        for (let node of layer.nodes) {
-          // this node has no connections
-          if (node.connections.length === 0) continue
-          for (let conn of node.connections) {
-            const connNode = nextLayer.nodes[conn]
-            const flowPoints = [node.x, node.y, connNode.x, connNode.y]
-            this.configFlows.push({
-              points: flowPoints
-            })
-          }
-        }
-      }
-    }
   },
   mounted: function () {
     // move nodes to the top layer
+    this.loadModule()
     this.$refs.nodesLayer.getStage().moveToTop()
   }
 }

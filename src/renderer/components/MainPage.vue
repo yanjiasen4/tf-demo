@@ -35,10 +35,13 @@
           </el-row>
         </el-col>
         <el-col :span="14">
-          <diagram :devices="devices" class="canvas" ref="diagram"></diagram>
+          <diagram :devices="devices" :module="moduleInput[module]" class="canvas" ref="diagram"></diagram>
           <el-row class="button-pannel">
             <el-button @click="executeTask" :loading="progressing">开始任务</el-button>
             <el-button @click="reset">重置</el-button>
+            <el-radio-group v-model="moduleInput">
+              <el-radio-button v-for="(item, index) of modules" :key="index" :label="item.name"></el-radio-button>
+            </el-radio-group>
           </el-row>
         </el-col>
         <el-col :span="5" class="device-wrapper">
@@ -102,6 +105,8 @@
   import Diagram from './Diagram'
   import Timer from './Timer'
   import Colors from '../assets/colorsTable'
+  import Module0 from '../assets/modules/md0'
+  import Module1 from '../assets/modules/md1'
 
   import { mapState } from 'vuex'
 
@@ -122,7 +127,13 @@
         maxRate: 20,
         progressing: false,
         taskName: 1,
-        records: []
+        records: [],
+        module: 'module0',
+        modules: ['module0', 'module1'],
+        moduleInput: {
+          'module0': Module0.module,
+          'module1': Module1.module
+        }
       }
     },
     computed: {
@@ -153,10 +164,8 @@
       calcBarWidthPercent: function () {
         let max = 0
         for (let roc of this.records) {
-          console.log(roc.time)
           if (max < roc.time) max = roc.time
         }
-        console.log(max)
         this.records.forEach(element => {
           element.width = element.time / max
         })
@@ -247,10 +256,6 @@
   .device-info {
     margin-top: 10px;
     text-align: center;
-  }
-
-  i {
-    font-size: 32px;
   }
 
   span .attr {
