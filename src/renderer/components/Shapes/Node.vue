@@ -3,6 +3,9 @@
     <v-circle :config="configCircle" ref="node"></v-circle>
     <v-wedge :config="configWedge" ref="wedge"></v-wedge>
     <v-label :config="configLabel" ref="label"></v-label>
+
+    <!-- crash signal -->
+    <v-line :config="configLine" v-if="!alive" ref="line"></v-line>
   </div>
 </template>
 
@@ -15,6 +18,11 @@ import Colors from '../../assets/colorsTable'
 export default {
   props: ['nodeAttr'],
   data () {
+    const alaph = Math.atan(1) // 45
+    const lineStarX = this.nodeAttr.x - this.nodeAttr.radius * Math.cos(alaph)
+    const lineStarY = this.nodeAttr.y - this.nodeAttr.radius * Math.sin(alaph)
+    const lineEndX = this.nodeAttr.x + this.nodeAttr.radius * Math.cos(alaph)
+    const lineEndY = this.nodeAttr.y + this.nodeAttr.radius * Math.sin(alaph)
     return {
       configCircle: {
         x: this.nodeAttr.x,
@@ -38,9 +46,15 @@ export default {
         angle: 0,
         fill: Colors.colors[this.nodeAttr.groupId]
       },
-      lid: this.nodeAttr.lid,
-      nid: this.nodeAttr.nid,
-      tween: null
+      configLine: {
+        points: [lineStarX, lineStarY, lineEndX, lineEndY],
+        stroke: Colors.colors[this.nodeAttr.groupId],
+        strokeWidth: 3
+      },
+      lid: this.nodeAttr.lid, // layer id
+      nid: this.nodeAttr.nid, // node id
+      tween: null, // save tween object
+      alive: true
     }
   },
   methods: {
@@ -65,6 +79,13 @@ export default {
       if (this.tween !== null) {
         this.tween.reverse()
       }
+    },
+    repair: function (delay) {
+      console.log(delay)
+      setTimeout(() => {
+        console.log(`repaired: ${this.alive}`)
+        this.alive = true
+      }, delay * 1000)
     }
   },
   mounted: function () {
@@ -107,6 +128,11 @@ export default {
       })
       this.$refs.wedge.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
+      })
+
+      this.$refs.node.getStage().on('click', (evt) => {
+        this.alive = !this.alive
+        console.log(`${this.nid} set alive to : ${this.alive}`)
       })
     })
   }

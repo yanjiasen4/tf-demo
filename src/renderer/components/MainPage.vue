@@ -77,7 +77,7 @@
                     <span>GPU</span>
                   </el-col>
                   <el-col :span="18" class="slider-wrapper">
-                    <el-slider v-model="dev.GPURate" :max="maxRate"></el-slider>
+                    <el-slider v-model="dev.GPURate" :min="minRate" :max="maxRate"></el-slider>
                   </el-col>
                 </el-row>
                 <el-row>
@@ -85,7 +85,7 @@
                     <span>CPU</span>
                   </el-col>
                   <el-col :span="18" class="slider-wrapper">
-                    <el-slider v-model="dev.CPURate" :max="maxRate"></el-slider>
+                    <el-slider v-model="dev.CPURate" :min="minRate" :max="maxRate"></el-slider>
                   </el-col>
                 </el-row>
               </el-row>
@@ -118,7 +118,8 @@
       return {
         devices: Devices.deviceConfig.dev1,
         colors: Colors.colors,
-        maxRate: 30,
+        minRate: 1,
+        maxRate: 20,
         progressing: false,
         taskName: 1,
         records: []
@@ -133,13 +134,17 @@
       executeTask: function () {
         this.$refs.diagram.executeTask()
         this.$refs.timer.startProgress(this.time)
-        this.records.push({
-          name: this.taskName,
-          time: this.time
-        })
         this.taskName += 1
-        this.calcBarWidthPercent()
-        this.progressing = this.progressing
+        this.progressing = true
+        setTimeout(() => {
+          this.records.push({
+            name: this.taskName,
+            time: this.time,
+            width: 0
+          })
+          this.calcBarWidthPercent()
+          this.progressing = false
+        }, this.time * 1000)
       },
       reset: function () {
         this.$refs.diagram.reset()
@@ -161,8 +166,6 @@
 </script>
 
 <style>
-  @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro');
-
   * {
     box-sizing: border-box;
     margin: 0;
@@ -170,7 +173,7 @@
   }
 
   body {
-    font-family: 'Source Sans Pro', "PingFang SC", sans-serif;
+    font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei";
   }
 
   .header {
@@ -186,7 +189,8 @@
   .header h1 {
     padding-top: 8px;
     text-align: center;
-    font-size: 40pt;
+    font-size: 36pt;
+    line-height: 52pt;
     vertical-align: middle;
     color: #444;
   }
@@ -317,10 +321,19 @@
   .timer-bar p {
     text-align: right;
     color: white;
-    line-height: 14px;
+    line-height: 15px;
   }
 
   .timer-tag {
-    padding-top: 4px;
+    padding-top: 7px;
+  }
+
+  .bar-enter-active {
+    transition: all .8s ease;
+  }
+
+  .bar-enter {
+    transform: translateX(-80px);
+    opacity: 0;
   }
 </style>

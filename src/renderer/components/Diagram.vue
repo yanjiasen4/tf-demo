@@ -35,19 +35,22 @@ export default {
       flowsNumArray: [],
       devicesSetting: [],
       progressing: false,
-      dataFlowDuration: 1
+      dataFlowDuration: 1,
+      nodeRepairCost: 2
     }
   },
   methods: {
     startAnimation: function () {
       let lastAnimationFinished = 0
+      // const recoverTime = 2
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodes.length; j++) {
           const node = this.module.layers[i].nodes[j]
-          let delay = 0
+          const nodeIndex = this.getNodeIndex(i, j)
+          let delay = node.delay
           if (i > 0 && node.connectBy.length > 0) {
-            const prevLayer = this.module.layers[i - 1]
-            delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy) + i * this.dataFlowDuration
+            // const prevLayer = this.module.layers[i - 1]
+            delay += i * this.dataFlowDuration
             // console.log(`animation: ${delay}`)
           }
 
@@ -57,14 +60,18 @@ export default {
             // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
             this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration)
           }
-          // console.log(`lid: ${i}, nid: ${j} nindex: ${this.getNodeIndex(i, j)}, start task at ${delay}, duration: ${node.duration}`)
-          this.$refs.nodes[this.getNodeIndex(i, j)].progress(node.duration, delay)
+          // console.log(`lid: ${i}, nid: ${j} nindex: ${nodeIndex}, start task at ${delay}, duration: ${node.duration}`)
 
+          this.$refs.nodes[nodeIndex].progress(node.duration, delay)
+          if (node.repair !== 0) {
+            this.$refs.nodes[nodeIndex].repair(delay)
+          }
           lastAnimationFinished = delay + node.duration
         }
       }
       console.log(lastAnimationFinished)
-      let backPropogationFinished = this.backPropogation(lastAnimationFinished) // wait for 1s
+      let backPropogationFinished = this.backPropogation(lastAnimationFinished)
+      // commit time task cost to store
       this.$store.commit({
         type: 'SET_TIME',
         time: backPropogationFinished
@@ -73,12 +80,13 @@ export default {
     backPropogation: function (delay) {
       let backPropogationFinished = 0
       for (let i = this.module.layersNum - 1; i >= 0; i--) {
+        console.log(i)
         for (let j = this.module.layers[i].nodes.length - 1; j >= 0; j--) {
           const node = this.module.layers[i].nodes[j]
           for (let k = 0; k < node.connections.length; k++) {
             const flowIndex = this.getFlowIndex(i, j, k)
-            this.$refs.flows[flowIndex].reverse(delay + this.dataFlowDuration * (this.module.layersNum - i - 1))
-            backPropogationFinished = delay + this.dataFlowDuration * (this.module.layersNum - i)
+            this.$refs.flows[flowIndex].reverse(delay + this.dataFlowDuration * (this.module.layersNum - i - 2))
+            backPropogationFinished = delay + this.dataFlowDuration * (this.module.layersNum - i - 1)
           }
         }
       }
@@ -91,27 +99,36 @@ export default {
         for (let j = 0; j < this.devicesSetting[i].length; j++) { // device
           let GPUCost = 0
           let CPUCost = 0
-          let IOCost = 0
+          // let IOCost = 0
           const GPURates = this.devices.devs[j].GPURate
           const CPURates = this.devices.devs[j].CPURate
-          const IORates = this.devices.devs[j].IORate
+          // const IORates = this.devices.devs[j].IORate
           const layerDeviceNodes = this.devicesSetting[i][j]
           for (let k = 0; k < layerDeviceNodes.length; k++) {
             GPUCost += layerDeviceNodes[k].cost[0]
             CPUCost += layerDeviceNodes[k].cost[1]
-            IOCost += layerDeviceNodes[k].cost[2]
+            // IOCost += layerDeviceNodes[k].cost[2]
           }
-          let duration = Math.max(GPUCost / GPURates, CPUCost / CPURates, IOCost / IORates)
+          const duration = Math.max(GPUCost / GPURates, CPUCost / CPURates)
           for (let k = 0; k < layerDeviceNodes.length; k++) {
-            let node = layerDeviceNodes[k]
+            const node = layerDeviceNodes[k]
+            const nodeIndex = this.getNodeIndex(i, node.nid)
+            const nodeRef = this.$refs.nodes[nodeIndex]
             node.duration = duration
-            node.delay = 1
+            node.delay = 0
+            node.repair = 0
             if (i > 0) {
               const prevLayer = this.module.layers[i - 1]
-              node.delay = this.getMaxTime2Wait(prevLayer.nodes, node.connectBy)
+              node.delay = Math.max(this.getMaxTime2Wait(prevLayer.nodes, node.connectBy), node.delay + this.getRepairTime(i - 1))
             } else {
               node.delay = 0
             }
+            // node dead
+            if (!nodeRef.alive) {
+              node.repair = this.nodeRepairCost
+            }
+            node.delay += node.repair
+            // console.log(`lid: ${i}, nid: ${node.nid}, delay: ${node.delay}, duration: ${node.duration}`)
           }
         }
       }
@@ -199,6 +216,14 @@ export default {
         }
       }
       return maxT2w
+    },
+    getRepairTime: function (lid) {
+      if (lid < 0 || lid > this.module.layersNum) return 0
+      let maxRepair = 0
+      for (let node of this.module.layers[parseInt(lid)].nodes) {
+        maxRepair = maxRepair < node.repair ? node.repair : maxRepair
+      }
+      return maxRepair
     }
   },
   created: function () {

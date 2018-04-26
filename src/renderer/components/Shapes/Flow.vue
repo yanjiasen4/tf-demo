@@ -49,12 +49,12 @@ export default {
       configLineL: {
         points: newflowPointsL,
         stroke: 'black',
-        storkeWidth: 4
+        strokeWidth: 2
       },
       configLineR: {
         points: newflowPointsR,
         stroke: 'black',
-        storkeWidth: 4
+        strokeWidth: 2
       },
       configRectangle: {
         x: recx,
