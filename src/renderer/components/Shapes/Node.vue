@@ -77,7 +77,8 @@ export default {
     },
     reset: function () {
       if (this.tween !== null) {
-        this.tween.reverse()
+        this.tween.reset()
+        this.tween.destroy()
       }
     },
     repair: function (delay) {
