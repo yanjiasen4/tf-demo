@@ -19,7 +19,7 @@ export default {
       }, {
         'nid': 2,
         'group': 0,
-        'connections': [0, 1],
+        'connections': [1],
         'connectBy': [],
         'cost': [4, 2, 1]
       }]
@@ -30,7 +30,7 @@ export default {
         'nid': 0,
         'group': 0,
         'connections': [0],
-        'connectBy': [0, 1, 2],
+        'connectBy': [0, 1],
         'cost': [2, 2, 2]
       }, {
         'nid': 1,

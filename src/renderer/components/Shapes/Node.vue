@@ -154,13 +154,13 @@ export default {
         this.alive = !this.alive
         if (this.alive !== true) {
           this.$message({
-            message: `第${this.lid + 1}层，第${this.nid + 1}个节点将会失效`,
+            message: `第${parseInt(this.lid) + 1}层，第${parseInt(this.nid) + 1}个节点将会失效`,
             type: 'error',
             duration: 1500
           })
         } else {
           this.$message({
-            message: `第${this.lid + 1}层，第${this.nid + 1}个节点设置为正常工作`,
+            message: `第${parseInt(this.lid) + 1}层，第${parseInt(this.nid) + 1}个节点设置为正常工作`,
             type: 'success',
             duration: 1500
           })
