@@ -51,7 +51,7 @@ export default {
           let delay = node.delay + startTime
           if (i > 0 && node.connectBy.length > 0) {
             // const prevLayer = this.module.layers[i - 1]
-            delay += i * this.dataFlowDuration
+            // delay += i * this.dataFlowDuration
             // console.log(`animation: ${delay}`)
           }
 
@@ -59,7 +59,7 @@ export default {
           for (let k = 0; k < node.connections.length; k++) {
             const flowIndex = this.getFlowIndex(i, j, k)
             // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
-            this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration)
+            this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration + node.wait)
           }
           // console.log(`lid: ${i}, nid: ${j} nindex: ${nodeIndex}, start task at ${delay}, duration: ${node.duration}`)
 
@@ -104,16 +104,58 @@ export default {
         startTime = this.startAnimation(startTime, i)
       }
     },
-    executeTaskSync: function () {
+    executeTaskAsync: function () {
       const batch = 4
       this.createDevicesSetting()
       this.setRepairedNodes()
-      this.calcDelayDuration()
+      // init
       for (let i = 0; i < this.module.layersNum; i++) {
         for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
-          for (let k = 0; k < batch; k++) {
-            // [TODO]
+          const node = this.module.layers[i].nodes[j]
+          node.delay = 0
+          node.repair = 0
+          node.wait = 0
+          node.duration = 0
+        }
+      }
+      for (let i = 0; i < batch; i++) {
+        this.calcDelayDurationAsync()
+        this.startAnimation(0, i)
+      }
+    },
+    calcDelayDurationAsync: function () {
+      for (let i = 0; i < this.module.layersNum; i++) {
+        for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
+          const node = this.module.layers[i].nodes[j]
+          node.delay = node.delay + node.duration + node.wait
+          node.duration = node.time[node.group]
+          // cal whether it need wait
+          if (i < this.module.layersNum - 1) {
+            let maxi = 0
+            for (let parentId of node.connections) {
+              const parent = this.module.layers[i + 1].nodes[parentId]
+              if (parent.duration + parent.delay > maxi) {
+                maxi = parent.duration + parent.delay
+              }
+            }
+            if (maxi > node.delay + node.duration) {
+              node.wait = maxi - node.delay - node.duration
+            } else {
+              node.wait = 0
+            }
           }
+          // cal the delay time
+          if (i > 0) {
+            let maxi = 0
+            for (let childId of node.connectBy) {
+              const child = this.module.layers[i - 1].nodes[childId]
+              if (child.time[child.group] + child.delay > maxi) {
+                maxi = child.time[child.group] + child.delay
+              }
+            }
+            node.delay = maxi
+          }
+          console.log(i, j, ' ', node.delay)
         }
       }
     },
@@ -224,8 +266,8 @@ export default {
             groupId: node.group,
             lid: i,
             nid: j,
-            GPUCost: node.cost[0],
-            CPUCost: node.cost[1]
+            GPUCost: node.time[0],
+            CPUCost: node.time[1]
           })
 
           // calculate connections number
