@@ -47,10 +47,10 @@
         <el-col :span="5" class="device-wrapper">
           <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="dev.hover = true" @mouseleave.native="dev.hover = false">
             <el-row class="device-header">
-              <span>机器编号 {{ dev.did }}</span>
+              <span> {{ dev.name }}</span>
               <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
             </el-row>
-            <el-row class="device-info">
+            <!-- <el-row class="device-info">
               <el-col :span="12">
                 <el-row>
                   <i class="el-icon-imp-cpu"></i>
@@ -65,15 +65,8 @@
                 <span class="attr">GPU</span>
                 <h4>{{ dev.GPURate }}</h4>
               </el-col>
-              <!-- <el-col :span="8">
-                  <el-row>
-                    <i class="el-icon-imp-chuanshu"></i>
-                  </el-row>
-                  <span class="attr">I/O</span>
-                  <h4>{{ dev.IORate }}</h4>
-                </el-col> -->
-            </el-row>
-            <transition name="pull">
+            </el-row> -->
+            <!-- transition name="pull">
               <el-row class="device-setting" v-if="dev.hover">
                 <el-row>
                   <el-col :span="6" class="slider-tag">
@@ -92,7 +85,8 @@
                   </el-col>
                 </el-row>
               </el-row>
-            </transition>
+            </transition  -->
+
           </el-row>
         </el-col>
       </el-row>
@@ -128,7 +122,7 @@
         progressing: false,
         taskName: 1,
         records: [],
-        module: 'module0',
+        module: 'module1',
         modules: ['module0', 'module1'],
         moduleInput: {
           'module0': Module0.module,
@@ -143,7 +137,7 @@
     },
     methods: {
       executeTask: function () {
-        this.$refs.diagram.executeTask()
+        this.$refs.diagram.executeTaskAsync()
         this.$refs.timer.startProgress(this.time)
         this.taskName += 1
         this.progressing = true

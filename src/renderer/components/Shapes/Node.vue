@@ -3,6 +3,8 @@
     <v-circle :config="configCircle" ref="node"></v-circle>
     <v-wedge :config="configWedgeEven" ref="wedgeEven"></v-wedge>
     <v-wedge :config="configWedgeOdd" ref="wedgeOdd"></v-wedge>
+    <v-wedge :config="configWedge3" ref="wedge3"></v-wedge>
+    <v-wedge :config="configWedge4" ref="wedge4"></v-wedge>
     <v-label :config="configLabel" ref="label"></v-label>
 
     <!-- crash signal -->
@@ -54,6 +56,20 @@ export default {
         angle: 0,
         fill: Colors.dataColors[1]
       },
+      configWedge3: {
+        x: this.nodeAttr.x,
+        y: this.nodeAttr.y,
+        radius: this.nodeAttr.radius,
+        angle: 0,
+        fill: Colors.dataColors[2]
+      },
+      configWedge4: {
+        x: this.nodeAttr.x,
+        y: this.nodeAttr.y,
+        radius: this.nodeAttr.radius,
+        angle: 0,
+        fill: Colors.dataColors[3]
+      },
       configLine: {
         points: [lineStarX, lineStarY, lineEndX, lineEndY],
         stroke: Colors.colors[this.nodeAttr.groupId],
@@ -74,7 +90,8 @@ export default {
           this.tween.destroy()
           this.tween = null
         }
-        const node = iter % 2 === 0 ? this.$refs.wedgeEven : this.$refs.wedgeOdd
+        const nodes = [this.$refs.wedgeEven, this.$refs.wedgeOdd, this.$refs.wedge3, this.$refs.wedge4]
+        const node = nodes[iter % 4]
         const progressTween = new Tween({
           node: node.getStage(),
           duration: duration,
