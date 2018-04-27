@@ -37,11 +37,11 @@ export default {
       devicesSetting: [],
       progressing: false,
       dataFlowDuration: 1,
-      nodeRepairCost: 2
+      nodeRepairCost: 5
     }
   },
   methods: {
-    startAnimation: function (startTime, iter) {
+    startAnimation: function (startTime, iter, playFlow) {
       let lastAnimationFinished = 0
       // const recoverTime = 2
       for (let i = 0; i < this.module.layersNum; i++) {
@@ -56,10 +56,17 @@ export default {
           }
 
           // flow animation
-          for (let k = 0; k < node.connections.length; k++) {
-            const flowIndex = this.getFlowIndex(i, j, k)
-            // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
-            this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration + node.wait)
+          if (playFlow) {
+            for (let k = 0; k < node.connections.length; k++) {
+              const flowIndex = this.getFlowIndex(i, j, k)
+              // console.log(`lid: ${i}, nid: ${j} findex: ${flowIndex}, start flow at ${delay + node.duration}, duration: ${dataFlowDuration}`)
+              this.$refs.flows[flowIndex].progress(this.dataFlowDuration, delay + node.duration + node.wait)
+            }
+          } else {
+            for (let k = 0; k < node.connections.length; k++) {
+              const flowIndex = this.getFlowIndex(i, j, k)
+              this.$refs.flows[flowIndex].changeColor(iter, delay + node.duration)
+            }
           }
           // console.log(`lid: ${i}, nid: ${j} nindex: ${nodeIndex}, start task at ${delay}, duration: ${node.duration}`)
 
@@ -94,14 +101,29 @@ export default {
       return backPropogationFinished
     },
     executeTask: function () {
-      const batch = 1
+      const batch = 3
       this.createDevicesSetting()
       this.setRepairedNodes()
       this.calcDelayDuration()
-      let startTime = this.startAnimation(0, 0)
+      let startTime = this.startAnimation(0, 0, true)
       for (let i = 1; i < batch; i++) {
         this.calcDelayDuration()
-        startTime = this.startAnimation(startTime, i)
+        startTime = this.startAnimation(startTime, i, true)
+      }
+    },
+    executeTaskEx: function () {
+      const batch = 3
+      this.createDevicesSetting()
+      this.setRepairedNodes()
+      this.calcDelayDuration()
+      let startTime = this.startAnimation(0, 0, true)
+      this.deviceSelect(0, startTime)
+      this.createDevicesSetting()
+      for (let i = 1; i < batch; i++) {
+        this.calcDelayDuration()
+        startTime = this.startAnimation(startTime, i, true)
+        this.deviceSelect(i, startTime)
+        this.createDevicesSetting()
       }
     },
     executeTaskAsync: function () {
@@ -120,7 +142,7 @@ export default {
       }
       for (let i = 0; i < batch; i++) {
         this.calcDelayDurationAsync()
-        this.startAnimation(0, i)
+        this.startAnimation(0, i, false)
       }
     },
     calcDelayDurationAsync: function () {
@@ -128,7 +150,7 @@ export default {
         for (let j = 0; j < this.module.layers[i].nodesNum; j++) {
           const node = this.module.layers[i].nodes[j]
           node.delay = node.delay + node.duration + node.wait
-          node.duration = node.time[node.group]
+          node.duration = node.cost[node.group]
           // cal whether it need wait
           if (i < this.module.layersNum - 1) {
             let maxi = 0
@@ -165,8 +187,8 @@ export default {
           let GPUCost = 0
           let CPUCost = 0
           // let IOCost = 0
-          const GPURates = this.devices.devs[j].GPURate
-          const CPURates = this.devices.devs[j].CPURate
+          // const GPURates = this.devices.devs[j].GPURate
+          // const CPURates = this.devices.devs[j].CPURate
           // const IORates = this.devices.devs[j].IORate
           const layerDeviceNodes = this.devicesSetting[i][j]
           for (let k = 0; k < layerDeviceNodes.length; k++) {
@@ -174,7 +196,8 @@ export default {
             CPUCost += layerDeviceNodes[k].cost[1]
             // IOCost += layerDeviceNodes[k].cost[2]
           }
-          const duration = Math.max(GPUCost / GPURates, CPUCost / CPURates)
+          const duration = Math.max(GPUCost, CPUCost)
+          console.log(duration)
           for (let k = 0; k < layerDeviceNodes.length; k++) {
             const node = layerDeviceNodes[k]
             node.duration = duration
@@ -190,9 +213,24 @@ export default {
             //   node.repair = this.nodeRepairCost
             // }
             node.delay += node.repair
+            node.wait = 0
             // console.log(`lid: ${i}, nid: ${node.nid}, delay: ${node.delay}, duration: ${node.duration}`)
           }
         }
+      }
+    },
+    deviceSelect: function (count, delay) {
+      if (count === 0) {
+        const node = this.devicesSetting[0][0][1]
+        const nodeIndex = this.getNodeIndex(node.lid, node.nid)
+        node.group = 2
+        this.$refs.nodes[nodeIndex].changeGroup(node.group, delay)
+      }
+      if (count === 1) {
+        const node = this.module.layers[1].nodes[1]
+        const nodeIndex = this.getNodeIndex(node.lid, node.nid)
+        node.group = 2
+        this.$refs.nodes[nodeIndex].changeGroup(node.group, delay)
       }
     },
     setRepairedNodes: function () {
@@ -251,7 +289,7 @@ export default {
         let layerY = moduleY - i * layerHeight
         let layer = this.module.layers[i]
         let nodesWidth = nodeWidth * layer.nodesNum
-        let layerLeft = (layerWidth - nodesWidth) / 2
+        let layerLeft = (layerWidth - nodesWidth) / 2 + nodeWidth / 4
         for (let j in layer.nodes) {
           // nodes
           let node = layer.nodes[j]
@@ -266,8 +304,8 @@ export default {
             groupId: node.group,
             lid: i,
             nid: j,
-            GPUCost: node.time[0],
-            CPUCost: node.time[1]
+            GPUCost: node.cost[0],
+            CPUCost: node.cost[1]
           })
 
           // calculate connections number
@@ -302,6 +340,10 @@ export default {
       for (let flow of this.$refs.flows) {
         flow.reset()
       }
+      // const node = this.devicesSetting[0][2][1]
+      // node.group = 0
+      // const nIndex = this.getNodeIndex(node.lid, node.nid)
+      // this.$refs.nodes[nIndex].changeGroup(0, 0)
     },
     pause: function () {
       for (let node of this.$refs.nodes) {

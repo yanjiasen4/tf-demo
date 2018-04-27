@@ -8,6 +8,8 @@
 
 <script>
 import { Tween } from 'konva'
+import Colors from '../../assets/colorsTable'
+
 export default {
   name: 'Flow',
   props: ['flowAttr'],
@@ -100,6 +102,14 @@ export default {
           this.tween.reverse()
         }, delay * 1000)
       }
+    },
+    changeColor: function (iter, delay) {
+      setTimeout(() => {
+        this.configLineL.stroke = Colors.dataColors[iter]
+        this.configLineR.stroke = Colors.dataColors[iter]
+        this.$refs.lineL.getStage().setAttr('stroke', Colors.dataColors[iter])
+        this.$refs.lineR.getStage().setAttr('stroke', Colors.dataColors[iter])
+      }, delay * 1000)
     }
   }
 }

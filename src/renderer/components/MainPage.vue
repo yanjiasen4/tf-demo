@@ -38,10 +38,12 @@
           <diagram :devices="devices" :module="moduleInput[module]" class="canvas" ref="diagram"></diagram>
           <el-row class="button-pannel">
             <el-button @click="executeTask" :loading="progressing">开始任务</el-button>
+            <el-button @click="executeTaskEx" :loading="progressing">设备调度</el-button>
+            <el-button @click="executeTaskAsync" :loading="progressing">开始异步任务</el-button>
             <el-button @click="reset">重置</el-button>
-            <el-radio-group v-model="moduleInput">
+            <!-- <el-radio-group v-model="moduleInput">
               <el-radio-button v-for="(item, index) of modules" :key="index" :label="item.name"></el-radio-button>
-            </el-radio-group>
+            </el-radio-group> -->
           </el-row>
         </el-col>
         <el-col :span="5" class="device-wrapper">
@@ -50,7 +52,7 @@
               <span> {{ dev.name }}</span>
               <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
             </el-row>
-            <!-- <el-row class="device-info">
+            <el-row class="device-info">
               <el-col :span="12">
                 <el-row>
                   <i class="el-icon-imp-cpu"></i>
@@ -65,8 +67,8 @@
                 <span class="attr">GPU</span>
                 <h4>{{ dev.GPURate }}</h4>
               </el-col>
-            </el-row> -->
-            <!-- transition name="pull">
+            </el-row>
+            <transition name="pull">
               <el-row class="device-setting" v-if="dev.hover">
                 <el-row>
                   <el-col :span="6" class="slider-tag">
@@ -85,8 +87,7 @@
                   </el-col>
                 </el-row>
               </el-row>
-            </transition  -->
-
+            </transition>
           </el-row>
         </el-col>
       </el-row>
@@ -137,9 +138,8 @@
     },
     methods: {
       executeTask: function () {
-        this.$refs.diagram.executeTaskAsync()
+        this.$refs.diagram.executeTask()
         this.$refs.timer.startProgress(this.time)
-        this.taskName += 1
         this.progressing = true
         setTimeout(() => {
           this.records.push({
@@ -147,6 +147,37 @@
             time: this.time,
             width: 0
           })
+          this.taskName += 1
+          this.calcBarWidthPercent()
+          this.progressing = false
+        }, this.time * 1000)
+      },
+      executeTaskEx: function () {
+        this.$refs.diagram.executeTaskEx()
+        this.$refs.timer.startProgress(this.time)
+        this.progressing = true
+        setTimeout(() => {
+          this.records.push({
+            name: this.taskName,
+            time: this.time,
+            width: 0
+          })
+          this.taskName += 1
+          this.calcBarWidthPercent()
+          this.progressing = false
+        }, this.time * 1000)
+      },
+      executeTaskAsync: function () {
+        this.$refs.diagram.executeTaskAsync()
+        this.$refs.timer.startProgress(this.time)
+        this.progressing = true
+        setTimeout(() => {
+          this.records.push({
+            name: this.taskName,
+            time: this.time,
+            width: 0
+          })
+          this.taskName += 1
           this.calcBarWidthPercent()
           this.progressing = false
         }, this.time * 1000)

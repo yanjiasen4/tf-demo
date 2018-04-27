@@ -1,10 +1,10 @@
 <template>
   <div>
     <v-circle :config="configCircle" ref="node"></v-circle>
-    <v-wedge :config="configWedgeEven" ref="wedgeEven"></v-wedge>
-    <v-wedge :config="configWedgeOdd" ref="wedgeOdd"></v-wedge>
+    <v-wedge :config="configWedge0" ref="wedge0"></v-wedge>
+    <v-wedge :config="configWedge1" ref="wedge1"></v-wedge>
+    <v-wedge :config="configWedge2" ref="wedge2"></v-wedge>
     <v-wedge :config="configWedge3" ref="wedge3"></v-wedge>
-    <v-wedge :config="configWedge4" ref="wedge4"></v-wedge>
     <v-label :config="configLabel" ref="label"></v-label>
 
     <!-- crash signal -->
@@ -26,6 +26,7 @@ export default {
     const lineStarY = this.nodeAttr.y - this.nodeAttr.radius * Math.sin(alaph)
     const lineEndX = this.nodeAttr.x + this.nodeAttr.radius * Math.cos(alaph)
     const lineEndY = this.nodeAttr.y + this.nodeAttr.radius * Math.sin(alaph)
+    const wedgeRadius = this.nodeAttr.radius - 8
     return {
       configCircle: {
         x: this.nodeAttr.x,
@@ -34,7 +35,7 @@ export default {
         // fill: Colors.colors[this.nodeAttr.groupId],
         fill: 'white',
         stroke: Colors.colors[this.nodeAttr.groupId],
-        strokeWidth: 3
+        strokeWidth: 8
       },
       configLabel: {
         x: this.nodeAttr.x,
@@ -42,31 +43,31 @@ export default {
         visible: false,
         opacity: 0.75
       },
-      configWedgeOdd: {
+      configWedge0: {
         x: this.nodeAttr.x,
         y: this.nodeAttr.y,
-        radius: this.nodeAttr.radius,
+        radius: wedgeRadius,
         angle: 0,
         fill: Colors.dataColors[0]
       },
-      configWedgeEven: {
+      configWedge1: {
         x: this.nodeAttr.x,
         y: this.nodeAttr.y,
-        radius: this.nodeAttr.radius,
+        radius: wedgeRadius,
         angle: 0,
         fill: Colors.dataColors[1]
+      },
+      configWedge2: {
+        x: this.nodeAttr.x,
+        y: this.nodeAttr.y,
+        radius: wedgeRadius,
+        angle: 0,
+        fill: Colors.dataColors[2]
       },
       configWedge3: {
         x: this.nodeAttr.x,
         y: this.nodeAttr.y,
-        radius: this.nodeAttr.radius,
-        angle: 0,
-        fill: Colors.dataColors[2]
-      },
-      configWedge4: {
-        x: this.nodeAttr.x,
-        y: this.nodeAttr.y,
-        radius: this.nodeAttr.radius,
+        radius: wedgeRadius,
         angle: 0,
         fill: Colors.dataColors[3]
       },
@@ -90,7 +91,7 @@ export default {
           this.tween.destroy()
           this.tween = null
         }
-        const nodes = [this.$refs.wedgeEven, this.$refs.wedgeOdd, this.$refs.wedge3, this.$refs.wedge4]
+        const nodes = [this.$refs.wedge0, this.$refs.wedge1, this.$refs.wedge2, this.$refs.wedge3]
         const node = nodes[iter % 4]
         const progressTween = new Tween({
           node: node.getStage(),
@@ -116,6 +117,11 @@ export default {
     repair: function (delay) {
       setTimeout(() => {
         this.alive = true
+      }, delay * 1000)
+    },
+    changeGroup: function (group, delay) {
+      setTimeout(() => {
+        this.$refs.node.getStage().setAttr('stroke', Colors.colors[group])
       }, delay * 1000)
     }
   },
@@ -148,10 +154,16 @@ export default {
       this.$refs.node.getStage().on('mouseover mousemove', (evt) => {
         this.configLabel.visible = true
       })
-      this.$refs.wedgeEven.getStage().on('mouseover mousemove', (evt) => {
+      this.$refs.wedge0.getStage().on('mouseover mousemove', (evt) => {
         this.configLabel.visible = true
       })
-      this.$refs.wedgeOdd.getStage().on('mouseover mousemove', (evt) => {
+      this.$refs.wedge1.getStage().on('mouseover mousemove', (evt) => {
+        this.configLabel.visible = true
+      })
+      this.$refs.wedge2.getStage().on('mouseover mousemove', (evt) => {
+        this.configLabel.visible = true
+      })
+      this.$refs.wedge3.getStage().on('mouseover mousemove', (evt) => {
         this.configLabel.visible = true
       })
       label.on('mouseout', (evt) => {
@@ -160,10 +172,16 @@ export default {
       this.$refs.node.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
       })
-      this.$refs.wedgeEven.getStage().on('mouseout', (evt) => {
+      this.$refs.wedge0.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
       })
-      this.$refs.wedgeOdd.getStage().on('mouseout', (evt) => {
+      this.$refs.wedge1.getStage().on('mouseout', (evt) => {
+        this.configLabel.visible = false
+      })
+      this.$refs.wedge2.getStage().on('mouseout', (evt) => {
+        this.configLabel.visible = false
+      })
+      this.$refs.wedge3.getStage().on('mouseout', (evt) => {
         this.configLabel.visible = false
       })
 
