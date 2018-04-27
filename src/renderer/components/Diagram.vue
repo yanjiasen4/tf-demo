@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-stage :config="configKonva" ref="stage">
+      <backup ref="backup"></backup>
       <v-layer ref="nodesLayer">
         <node v-for="(node, index) of configNodes" :nodeAttr='node' ref="nodes" :key="index"></node>
       </v-layer>
@@ -14,12 +15,13 @@
 <script>
 import Node from './Shapes/Node'
 import Flow from './Shapes/Flow'
+import Backup from './Shapes/Backup'
 // import Module from '../assets/modules/md1'
 // import Devices from '../assets/devices/devs'
 
 export default {
   name: 'diagram',
-  components: { Node, Flow },
+  components: { Node, Flow, Backup },
   props: ['devices', 'module'],
   data () {
     return {
@@ -61,9 +63,10 @@ export default {
           }
           // console.log(`lid: ${i}, nid: ${j} nindex: ${nodeIndex}, start task at ${delay}, duration: ${node.duration}`)
 
-          this.$refs.nodes[nodeIndex].progress(node.duration, delay + iter * this.dataFlowDuration, iter)
+          this.$refs.nodes[nodeIndex].progress(node.duration, delay, iter)
           if (node.repair !== 0) {
             this.$refs.nodes[nodeIndex].repair(delay)
+            this.$refs.backup.send(node.x, node.y, delay - 1)
             node.repair = 0
           }
           lastAnimationFinished = delay + node.duration
@@ -91,7 +94,7 @@ export default {
       return backPropogationFinished
     },
     executeTask: function () {
-      const batch = 4
+      const batch = 1
       this.createDevicesSetting()
       this.setRepairedNodes()
       this.calcDelayDuration()
@@ -248,7 +251,7 @@ export default {
         let layerY = moduleY - i * layerHeight
         let layer = this.module.layers[i]
         let nodesWidth = nodeWidth * layer.nodesNum
-        let layerLeft = (layerWidth - nodesWidth) / 2 + nodeWidth / 2
+        let layerLeft = (layerWidth - nodesWidth) / 2
         for (let j in layer.nodes) {
           // nodes
           let node = layer.nodes[j]
