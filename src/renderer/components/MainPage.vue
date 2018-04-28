@@ -49,7 +49,7 @@
         <el-col :span="5" class="device-wrapper">
           <el-row class="device-pannel" v-for="(dev, index) of devices.devs" :key="index" @mouseenter.native="dev.hover = true" @mouseleave.native="dev.hover = false">
             <el-row class="device-header">
-              <span> {{ dev.name }}</span>
+              <span>机器编号：{{ dev.did }}</span>
               <span class="tag" :style="{ backgroundColor: colors[dev.did] }"></span>
             </el-row>
             <el-row class="device-info">
@@ -89,6 +89,12 @@
               </el-row>
             </transition>
           </el-row>
+          <el-row class="device-pannel">
+            <el-row class="device-header" v-for="n in batch">
+              <span>数据批次{{ n }}</span>
+              <span class="tag" :style="{ backgroundColor: dataColors[n - 1] }"></span>
+            </el-row>
+          </el-row>
         </el-col>
       </el-row>
     </el-main>
@@ -118,10 +124,12 @@
       return {
         devices: Devices.deviceConfig.dev1,
         colors: Colors.colors,
+        dataColors: Colors.dataColors,
         minRate: 1,
         maxRate: 20,
         progressing: false,
         taskName: 1,
+        batch: 4,
         records: [],
         module: 'module1',
         modules: ['module0', 'module1'],
