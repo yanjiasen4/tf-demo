@@ -61,7 +61,7 @@ export default {
 }
 
 .poster h1 {
-  font-size: 38px;
+  font-size: 44px;
   font-weight: bold;
 }
 
